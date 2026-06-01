@@ -31,30 +31,15 @@ services:
 
   api:
     build: ./backend
-    # Secrets/keys come from a gitignored `.env` in this directory (auto-loaded by
-    # Docker Compose). Copy .env.example -> .env and fill it in. Empty = feature off.
+    # All keys are loaded straight from the gitignored `.env` (copy .env.example -> .env).
+    # Using env_file (not ${VAR} interpolation) means a stray shell variable can never
+    # shadow your .env values. DATABASE_URL/REDIS_URL below override for the compose net.
+    env_file:
+      - .env
     environment:
-      ENVIRONMENT: ${ENVIRONMENT:-local}
+      ENVIRONMENT: local
       DATABASE_URL: postgresql+asyncpg://investing:investing@db:5432/investing
       REDIS_URL: redis://redis:6379/0
-      JWT_SECRET: ${JWT_SECRET:-change-me-dev-secret-please}
-      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
-      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-true}
-      # market data
-      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
-      FMP_API_KEY: ${FMP_API_KEY:-}
-      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
-      NEWSAPI_API_KEY: ${NEWSAPI_API_KEY:-}
-      # AI
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      AI_DECISION_MODE: ${AI_DECISION_MODE:-deterministic}
-      AI_AGENT_MODEL: ${AI_AGENT_MODEL:-claude-haiku-4-5}
-      AI_CHAIR_MODEL: ${AI_CHAIR_MODEL:-claude-sonnet-4-6}
-      # notifications
-      NTFY_TOPIC: ${NTFY_TOPIC:-}
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
     depends_on:
       db:
         condition: service_healthy

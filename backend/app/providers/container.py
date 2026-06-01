@@ -87,7 +87,7 @@ class ProviderContainer:
         return {
             "quote": chain("finnhub", "fmp", "alphavantage"),
             "candles": chain("fmp", "alphavantage", "finnhub"),
-            "fundamentals": chain("fmp", "finnhub", "alphavantage"),
+            "fundamentals": chain("finnhub", "fmp", "alphavantage"),
             "news": chain("finnhub", "newsapi"),
         }
 

@@ -8,7 +8,10 @@
       "Bash(docker context *)",
       "Bash(open -a Docker)",
       "Bash(docker info *)",
-      "Bash(docker version *)"
+      "Bash(docker version *)",
+      "Bash(docker compose *)",
+      "Bash(curl -sf localhost:8000/api/v1/health)",
+      "Bash(curl -s localhost:8000/api/v1/health)"
     ]
   }
 }

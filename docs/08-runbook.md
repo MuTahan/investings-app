@@ -88,6 +88,10 @@ docker compose exec api python -m app.db.seed_demo
 # Trigger a notification run immediately (per the calling user)
 curl -X POST localhost:8000/api/v1/notifications/run -H "Authorization: Bearer <jwt>"
 
+# Verify every configured provider works against its LIVE API (reads root .env)
+cd backend && docker run --rm --env-file ../.env -e PYTHONPATH=/code \
+  -v "$PWD":/code -w /code investing-backend:test python scripts/check_providers.py
+
 # Tests
 cd backend && docker run --rm -v "$PWD":/code -w /code <img> pytest -q
 cd web && npm test

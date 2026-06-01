@@ -13,7 +13,8 @@ from app.providers.base import (
     QuoteData,
 )
 
-_BASE = "https://financialmodelingprep.com/api/v3"
+# FMP migrated off /api/v3 to the "stable" API (query-param based).
+_BASE = "https://financialmodelingprep.com/stable"
 
 
 class FMPProvider(BaseMarketProvider):
@@ -33,7 +34,7 @@ class FMPProvider(BaseMarketProvider):
             raise ProviderError(f"fmp {path} error: {exc}") from exc
 
     async def get_quote(self, symbol: str) -> QuoteData:
-        data = await self._get(f"/quote/{symbol.upper()}")
+        data = await self._get("/quote", {"symbol": symbol.upper()})
         if not isinstance(data, list) or not data:
             raise ProviderError(f"fmp: no quote for {symbol}")
         q = data[0]
@@ -41,7 +42,7 @@ class FMPProvider(BaseMarketProvider):
             symbol=symbol.upper(),
             price=float(q["price"]),
             change=_f(q.get("change")),
-            change_pct=_f(q.get("changesPercentage")),
+            change_pct=_f(q.get("changePercentage")),
             open=_f(q.get("open")),
             high=_f(q.get("dayHigh")),
             low=_f(q.get("dayLow")),
@@ -53,12 +54,11 @@ class FMPProvider(BaseMarketProvider):
     async def get_candles(
         self, symbol: str, resolution: str, frm: datetime, to: datetime
     ) -> CandleSeries:
-        data = await self._get(
-            f"/historical-price-full/{symbol.upper()}",
-            {"from": frm.date().isoformat(), "to": to.date().isoformat()},
+        rows = await self._get(
+            "/historical-price-eod/full",
+            {"symbol": symbol.upper(), "from": frm.date().isoformat(), "to": to.date().isoformat()},
         )
-        rows = data.get("historical", []) if isinstance(data, dict) else []
-        if not rows:
+        if not isinstance(rows, list) or not rows:
             raise ProviderError(f"fmp: no candles for {symbol}")
         candles = [
             Candle(
@@ -70,26 +70,29 @@ class FMPProvider(BaseMarketProvider):
                 v=_f(r.get("volume")),
             )
             for r in rows
+            if r.get("open") is not None
         ]
         candles.sort(key=lambda c: c.t)
         return CandleSeries(symbol=symbol.upper(), resolution="D", candles=candles)
 
     async def get_fundamentals(self, symbol: str) -> Fundamentals:
-        ratios = await self._get(f"/ratios-ttm/{symbol.upper()}")
-        profile = await self._get(f"/profile/{symbol.upper()}")
+        ratios = await self._get("/ratios-ttm", {"symbol": symbol.upper()})
+        profile = await self._get("/profile", {"symbol": symbol.upper()})
         r = ratios[0] if isinstance(ratios, list) and ratios else {}
         p = profile[0] if isinstance(profile, list) and profile else {}
         return Fundamentals(
             symbol=symbol.upper(),
-            pe=_f(r.get("peRatioTTM")),
-            eps_growth=None,
-            revenue_growth=None,
+            pe=_f(r.get("priceToEarningsRatioTTM") or r.get("peRatioTTM")),
             gross_margin=_f(r.get("grossProfitMarginTTM")),
             op_margin=_f(r.get("operatingProfitMarginTTM")),
-            market_cap=_f(p.get("mktCap")),
-            dividend_yield=_f(r.get("dividendYielTTM") or r.get("dividendYieldTTM")),
+            market_cap=_f(p.get("marketCap")),
+            dividend_yield=_f(r.get("dividendYieldTTM")),
             beta=_f(p.get("beta")),
-            raw={"ratios": r, "profile": {k: p.get(k) for k in ("sector", "industry", "isEtf")}},
+            raw={
+                "sector": p.get("sector"),
+                "industry": p.get("industry"),
+                "isEtf": p.get("isEtf"),
+            },
         )
 
 
