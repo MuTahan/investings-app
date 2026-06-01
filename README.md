@@ -34,10 +34,13 @@ investing-app/
 │   ├── 05-api-contracts.md    # REST API contracts
 │   ├── 06-ai-agents.md        # agent + committee specifications
 │   ├── 07-roadmap.md          # phased implementation plan
-│   └── 08-runbook.md          # run, operate, troubleshoot, limits
+│   ├── 08-runbook.md          # run, operate, troubleshoot, limits
+│   ├── 09-deploy-vps.md       # deploy to a VPS (HTTPS via Caddy)
+│   └── 10-deploy-oracle.md    # deploy free on Oracle Always Free
 ├── backend/                   # FastAPI service (API, AI committee, scheduler)
 ├── web/                       # React + Vite PWA (nginx in prod)
-└── docker-compose.yml         # full stack: db + redis + api + web
+├── docker-compose.yml         # local full stack: db + redis + api + web
+└── docker-compose.prod.yml    # production stack + Caddy (auto HTTPS)
 ```
 
 ## Tech stack
