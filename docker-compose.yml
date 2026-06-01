@@ -1,0 +1,81 @@
+# Full-stack: Postgres + Redis + FastAPI backend + React PWA (nginx).
+# Run everything with:  docker compose up --build
+# Then open http://localhost:8080
+#
+# Runs out-of-the-box with no API keys (AI in deterministic mode, no live quotes).
+# To enable live data / AI / notifications, add the relevant vars to the `api`
+# environment block below (see backend/.env.example for the full list).
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: investing
+      POSTGRES_PASSWORD: investing
+      POSTGRES_DB: investing
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U investing"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    # Secrets/keys come from a gitignored `.env` in this directory (auto-loaded by
+    # Docker Compose). Copy .env.example -> .env and fill it in. Empty = feature off.
+    environment:
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      DATABASE_URL: postgresql+asyncpg://investing:investing@db:5432/investing
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-change-me-dev-secret-please}
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8080}
+      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-true}
+      # market data
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
+      FMP_API_KEY: ${FMP_API_KEY:-}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
+      NEWSAPI_API_KEY: ${NEWSAPI_API_KEY:-}
+      # AI
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AI_DECISION_MODE: ${AI_DECISION_MODE:-deterministic}
+      AI_AGENT_MODEL: ${AI_AGENT_MODEL:-claude-haiku-4-5}
+      AI_CHAIR_MODEL: ${AI_CHAIR_MODEL:-claude-sonnet-4-6}
+      # notifications
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.db.seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    ports:
+      - "8000:8000"
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_BASE_URL: /api/v1
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  pgdata:
