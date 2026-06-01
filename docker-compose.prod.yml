@@ -1,0 +1,95 @@
+# Production stack for a VPS: db + redis + api + web + Caddy (automatic HTTPS).
+# Only Caddy is exposed to the internet (ports 80/443); everything else is internal.
+#
+#   1) point a DNS A record (e.g. app.yourdomain.com) at the VPS IP
+#   2) cp .env.example .env  and fill it in (set DOMAIN, JWT_SECRET, keys, APP_BASE_URL)
+#   3) docker compose -f docker-compose.prod.yml up -d --build
+#
+# See docs/09-deploy-vps.md for the full walkthrough.
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: investing
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-investing}
+      POSTGRES_DB: investing
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U investing"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      ENVIRONMENT: production
+      DATABASE_URL: postgresql+asyncpg://investing:${POSTGRES_PASSWORD:-investing}@db:5432/investing
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in .env}
+      APP_BASE_URL: ${APP_BASE_URL:?set APP_BASE_URL in .env}
+      SCHEDULER_ENABLED: ${SCHEDULER_ENABLED:-true}
+      REGISTRATION_ENABLED: ${REGISTRATION_ENABLED:-true}
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
+      FMP_API_KEY: ${FMP_API_KEY:-}
+      ALPHAVANTAGE_API_KEY: ${ALPHAVANTAGE_API_KEY:-}
+      NEWSAPI_API_KEY: ${NEWSAPI_API_KEY:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AI_DECISION_MODE: ${AI_DECISION_MODE:-deterministic}
+      AI_AGENT_MODEL: ${AI_AGENT_MODEL:-claude-haiku-4-5}
+      AI_CHAIR_MODEL: ${AI_CHAIR_MODEL:-claude-sonnet-4-6}
+      NTFY_TOPIC: ${NTFY_TOPIC:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "alembic upgrade head &&
+             python -m app.db.seed &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  web:
+    build:
+      context: ./web
+      args:
+        VITE_API_BASE_URL: /api/v1
+    restart: unless-stopped
+    depends_on:
+      - api
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

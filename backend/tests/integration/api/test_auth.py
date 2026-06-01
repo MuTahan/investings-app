@@ -2,6 +2,17 @@ from __future__ import annotations
 
 from httpx import AsyncClient
 
+from app.config import get_settings
+
+
+async def test_registration_can_be_disabled(client: AsyncClient):
+    get_settings().registration_enabled = False
+    resp = await client.post(
+        "/api/v1/auth/register", json={"email": "blocked@example.com", "password": "password123"}
+    )
+    assert resp.status_code == 403
+    assert resp.json()["error"]["code"] == "forbidden"
+
 
 async def test_register_login_me_flow(client: AsyncClient):
     reg = await client.post(

@@ -3,7 +3,7 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import Settings
-from app.core.exceptions import Conflict, Unauthorized
+from app.core.exceptions import Conflict, Forbidden, Unauthorized
 from app.core.security import (
     AppleTokenVerifier,
     TokenPair,
@@ -28,6 +28,8 @@ class AuthService:
         self._users = UserRepository(session)
 
     async def register(self, req: RegisterRequest) -> tuple[User, TokenPair]:
+        if not self._settings.registration_enabled:
+            raise Forbidden("Registration is disabled.")
         if await self._users.get_by_email(req.email):
             raise Conflict("An account with this email already exists.")
         user = await self._users.create(

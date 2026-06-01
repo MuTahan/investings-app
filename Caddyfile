@@ -1,0 +1,8 @@
+# Caddy automatically provisions + renews a Let's Encrypt TLS cert for {$DOMAIN}.
+# All traffic is reverse-proxied to the web container (nginx), which serves the PWA
+# and proxies /api to the backend.
+
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy web:80
+}

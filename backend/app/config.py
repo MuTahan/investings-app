@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_ttl_seconds: int = 3600
     refresh_token_ttl_seconds: int = 60 * 60 * 24 * 30
+    # Set false after creating your account to lock down a public deployment.
+    registration_enabled: bool = True
 
     # Apple Sign-In
     apple_client_id: str | None = None  # service/bundle id used as `aud`
