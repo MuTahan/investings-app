@@ -12,6 +12,7 @@ from app.providers.base import (
     Fundamentals,
     NewsArticle,
     QuoteData,
+    SymbolHit,
 )
 
 _BASE = "https://finnhub.io/api/v1"
@@ -35,6 +36,29 @@ class FinnhubProvider(BaseMarketProvider):
             raise ProviderError(f"finnhub {path} failed: {exc.response.status_code}") from exc
         except httpx.HTTPError as exc:
             raise ProviderError(f"finnhub {path} error: {exc}") from exc
+
+    async def search_symbols(self, query: str, limit: int) -> list[SymbolHit]:
+        data = await self._get("/search", {"q": query})
+        results = data.get("result", []) if isinstance(data, dict) else []
+        hits: list[SymbolHit] = []
+        for r in results:
+            symbol = (r.get("symbol") or "").upper()
+            raw_type = (r.get("type") or "").lower()
+            # US listings only: skip dotted foreign tickers (e.g. "AAPL.MX").
+            if not symbol or "." in symbol:
+                continue
+            if raw_type and raw_type not in ("common stock", "etp", "etf", "adr", ""):
+                continue
+            hits.append(
+                SymbolHit(
+                    symbol=symbol,
+                    name=r.get("description") or symbol,
+                    type="etf" if raw_type in ("etp", "etf") else "stock",
+                )
+            )
+            if len(hits) >= limit:
+                break
+        return hits
 
     async def get_quote(self, symbol: str) -> QuoteData:
         data = await self._get("/quote", {"symbol": symbol.upper()})

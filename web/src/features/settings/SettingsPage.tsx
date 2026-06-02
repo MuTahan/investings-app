@@ -8,6 +8,7 @@ import { ErrorPanel, Spinner } from "../../components/ui/StatePanel";
 import { useMe, useUpdateRiskProfile } from "../../hooks/useAuth";
 import {
   useNotificationPreferences,
+  useSendTestNotification,
   useUpdateNotificationPreferences,
 } from "../../hooks/useNotifications";
 import type { RiskTolerance, TimeHorizon } from "../../models/enums";
@@ -136,6 +137,7 @@ const CATEGORIES = [
 function NotificationPreferencesCard() {
   const prefs = useNotificationPreferences();
   const update = useUpdateNotificationPreferences();
+  const sendTest = useSendTestNotification();
 
   const [categories, setCategories] = useState<string[]>([]);
   const [minPriority, setMinPriority] = useState("high");
@@ -224,11 +226,25 @@ function NotificationPreferencesCard() {
             onChange={(e) => setQuietEnd(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" loading={update.isPending}>
             Save
           </Button>
           {update.isSuccess && <span className="text-sm text-bull">Saved ✓</span>}
+          <Button
+            type="button"
+            variant="secondary"
+            loading={sendTest.isPending}
+            onClick={() => sendTest.mutate()}
+          >
+            Send test
+          </Button>
+          {sendTest.isSuccess &&
+            (sendTest.data?.sent ? (
+              <span className="text-sm text-bull">Sent ✓ — check the Alerts tab</span>
+            ) : (
+              <span className="text-sm text-muted">Logged to in-app feed (no push channel set)</span>
+            ))}
         </div>
       </form>
     </Card>

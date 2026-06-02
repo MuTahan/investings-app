@@ -79,6 +79,17 @@ async def run_now(
     return await NotificationService(session, providers, settings).run_for_user(user)
 
 
+@router.post("/test", response_model=RunResult)
+async def send_test(
+    user: CurrentUserDep,
+    session: SessionDep,
+    providers: ProvidersDep,
+    settings: SettingsDep,
+) -> RunResult:
+    """Send a one-off test notification through all configured channels + in-app feed."""
+    return await NotificationService(session, providers, settings).send_test(user)
+
+
 @router.post("/devices", response_model=Message, status_code=status.HTTP_201_CREATED)
 async def register_device(
     req: RegisterDeviceRequest, user: CurrentUserDep, session: SessionDep

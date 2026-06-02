@@ -73,6 +73,13 @@ class NewsArticle(BaseModel):
     category: str = "company"
 
 
+class SymbolHit(BaseModel):
+    symbol: str
+    name: str
+    type: str = "stock"  # "stock" | "etf"
+    exchange: str | None = None
+
+
 class MacroSnapshot(BaseModel):
     vix: float | None = None
     rate_trend: str | None = None
@@ -97,6 +104,7 @@ class MarketDataProvider(Protocol):
     async def get_news(
         self, symbol: str | None, category: str, limit: int
     ) -> list[NewsArticle]: ...
+    async def search_symbols(self, query: str, limit: int) -> list[SymbolHit]: ...
 
 
 class BaseMarketProvider:
@@ -117,6 +125,9 @@ class BaseMarketProvider:
 
     async def get_news(self, symbol: str | None, category: str, limit: int) -> list[NewsArticle]:
         raise ProviderNotSupported(f"{self.name} does not support news")
+
+    async def search_symbols(self, query: str, limit: int) -> list[SymbolHit]:
+        raise ProviderNotSupported(f"{self.name} does not support symbol search")
 
 
 @runtime_checkable

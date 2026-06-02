@@ -18,6 +18,14 @@ export function useRunNotifications() {
   });
 }
 
+export function useSendTestNotification() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => notificationRepository.test(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: KEY }),
+  });
+}
+
 export function useNotificationPreferences() {
   return useQuery({ queryKey: PREFS_KEY, queryFn: () => notificationRepository.getPreferences() });
 }

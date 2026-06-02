@@ -11,7 +11,10 @@ from app.providers.base import (
     CandleSeries,
     Fundamentals,
     QuoteData,
+    SymbolHit,
 )
+
+_US_EXCHANGES = {"NASDAQ", "NYSE", "AMEX", "NYSE AMERICAN", "BATS", "OTC"}
 
 # FMP migrated off /api/v3 to the "stable" API (query-param based).
 _BASE = "https://financialmodelingprep.com/stable"
@@ -32,6 +35,25 @@ class FMPProvider(BaseMarketProvider):
             return resp.json()
         except httpx.HTTPError as exc:
             raise ProviderError(f"fmp {path} error: {exc}") from exc
+
+    async def search_symbols(self, query: str, limit: int) -> list[SymbolHit]:
+        data = await self._get("/search-symbol", {"query": query, "limit": limit * 2})
+        if not isinstance(data, list):
+            return []
+        hits: list[SymbolHit] = []
+        for r in data:
+            symbol = (r.get("symbol") or "").upper()
+            exchange = (r.get("exchange") or r.get("exchangeShortName") or "").upper()
+            if not symbol or "." in symbol:
+                continue
+            if exchange and exchange not in _US_EXCHANGES:
+                continue
+            hits.append(
+                SymbolHit(symbol=symbol, name=r.get("name") or symbol, exchange=exchange or None)
+            )
+            if len(hits) >= limit:
+                break
+        return hits
 
     async def get_quote(self, symbol: str) -> QuoteData:
         data = await self._get("/quote", {"symbol": symbol.upper()})

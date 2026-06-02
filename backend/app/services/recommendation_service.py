@@ -37,6 +37,10 @@ from app.schemas.recommendation import (
 _committee = InvestmentCommittee()
 _FRESHNESS_SECONDS = 3600
 _BUY_RATINGS = {Rating.BUY, Rating.STRONG_BUY}
+# Shown in the Recommendation Center when a user has no watchlist/portfolio yet, so
+# the page is never empty. Kept small to bound AI calls (results are cached after the
+# first compute). Add stocks to your watchlist to personalize beyond this.
+_DEFAULT_UNIVERSE = ["AAPL", "MSFT", "NVDA", "AMZN", "GOOGL", "META", "SPY", "QQQ"]
 
 
 class RecommendationService:
@@ -135,7 +139,11 @@ class RecommendationService:
         min_confidence: float = 0.0,
     ) -> RecommendationCenterResponse:
         cards: list[RecommendationCard] = []
-        for symbol in await self._user_symbols(user):
+        symbols = await self._user_symbols(user)
+        if not symbols:
+            # Fresh account: show a default universe so Picks isn't empty.
+            symbols = _DEFAULT_UNIVERSE
+        for symbol in symbols:
             instrument = await self._instruments.get_by_symbol(symbol)
             if instrument is None:
                 continue

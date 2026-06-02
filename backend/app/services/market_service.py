@@ -34,7 +34,29 @@ class MarketService:
         )
 
     async def search(self, query: str, limit: int = 20) -> list[InstrumentOut]:
+        # 1) Local seeded/known instruments first (fast, always available).
         instruments = await self._instruments.search(query, limit)
+        seen = {i.symbol.upper() for i in instruments}
+
+        # 2) Top up from the live provider symbol search so the whole US market is
+        #    reachable — not just the seeded universe. New hits are persisted so the
+        #    detail/quote/AI pages work when the user opens them.
+        if len(instruments) < limit and len(query.strip()) >= 1:
+            try:
+                hits = await self._market.search_symbols(query, limit)
+            except Exception:  # noqa: BLE001 - search is best-effort; never break the page
+                hits = []
+            for hit in hits:
+                if hit.symbol.upper() in seen:
+                    continue
+                instrument = await self._instruments.get_or_create(
+                    symbol=hit.symbol, name=hit.name, type_=hit.type, exchange=hit.exchange
+                )
+                instruments.append(instrument)
+                seen.add(hit.symbol.upper())
+                if len(instruments) >= limit:
+                    break
+
         return [self._to_instrument_out(i) for i in instruments]
 
     async def get_instrument(self, symbol: str) -> InstrumentOut:

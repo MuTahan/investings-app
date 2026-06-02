@@ -13,6 +13,7 @@ from app.providers.base import (
     MarketDataProvider,
     NewsArticle,
     QuoteData,
+    SymbolHit,
 )
 from app.providers.cache import Cache
 from app.providers.rate_limit import RateLimiterRegistry
@@ -83,6 +84,17 @@ class MarketDataRouter:
         result = await self._route("fundamentals", lambda p: p.get_fundamentals(symbol))
         await self._cache.set(
             key, result.model_dump(mode="json"), self._settings.cache_ttl_fundamentals
+        )
+        return result
+
+    async def search_symbols(self, query: str, limit: int = 20) -> list[SymbolHit]:
+        key = f"search:{query.lower()}:{limit}"
+        cached = await self._cache.get(key)
+        if cached is not None:
+            return [SymbolHit.model_validate(h) for h in cached]
+        result = await self._route("search", lambda p: p.search_symbols(query, limit))
+        await self._cache.set(
+            key, [h.model_dump(mode="json") for h in result], self._settings.cache_ttl_news
         )
         return result
 

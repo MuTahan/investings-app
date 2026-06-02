@@ -90,6 +90,7 @@ class ProviderContainer:
             "candles": chain("fmp", "alphavantage", "finnhub"),
             "fundamentals": chain("finnhub", "fmp", "alphavantage"),
             "news": chain("finnhub", "newsapi"),
+            "search": chain("finnhub", "fmp"),
         }
 
     def _build_llm(self) -> LLMProvider:

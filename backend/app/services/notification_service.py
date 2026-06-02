@@ -113,6 +113,25 @@ class NotificationService:
                     sent += 1
         return RunResult(evaluated=evaluated, sent=sent)
 
+    async def send_test(self, user: User) -> RunResult:
+        """Fire a fixed test alert through every configured channel + the in-app feed,
+        so the user can confirm notifications work without waiting for the hourly job."""
+        url = (
+            f"{self._settings.app_base_url.rstrip('/')}/notifications"
+            if self._settings.app_base_url
+            else None
+        )
+        notification = Notification(
+            title="Investing AI: test alert",
+            body="✅ Notifications are working. Rating changes & news will arrive here.",
+            priority="high",
+            tag="TEST",
+            click_url=url,
+        )
+        ok = await self._providers.notifier.send(notification)
+        await self._notif_repo.add(user.id, None, "sent" if ok else "failed", category="test")
+        return RunResult(evaluated=1, sent=1 if ok else 0)
+
     async def list_feed(self, user: User, limit: int = 50) -> list[NotificationFeedItem]:
         rows = await self._notif_repo.list_for_user(user.id, limit)
         return [

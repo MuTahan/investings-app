@@ -9,6 +9,7 @@ import type {
 export const notificationRepository = {
   list: (limit = 50) => apiClient.get<NotificationFeedResponse>(endpoints.notifications.list(limit)),
   run: () => apiClient.post<RunResult>(endpoints.notifications.run),
+  test: () => apiClient.post<RunResult>(endpoints.notifications.test),
   getPreferences: () =>
     apiClient.get<NotificationPreference>(endpoints.notifications.preferences),
   updatePreferences: (prefs: NotificationPreference) =>

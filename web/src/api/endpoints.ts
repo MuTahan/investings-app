@@ -44,6 +44,7 @@ export const endpoints = {
   notifications: {
     list: (limit = 50) => `/notifications?limit=${limit}`,
     run: "/notifications/run",
+    test: "/notifications/test",
     devices: "/notifications/devices",
     preferences: "/notifications/preferences",
   },
