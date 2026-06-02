@@ -37,7 +37,7 @@ class RiskAgent(Agent):
         explanation = "; ".join(a.warnings) if a.warnings else "Risk appears contained."
         justification = None
 
-        if ctx.use_llm:
+        if ctx.agents_use_llm:
             try:
                 verdict = await llm.complete_json(self._prompt(ctx, a), model=ctx.agent_model)
                 reasoning = verdict.get("reasoning")

@@ -52,6 +52,10 @@ class Settings(BaseSettings):
     # --- AI providers ---
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
+    google_api_key: str | None = None
+    # Which LLM backend powers the committee. "auto" picks the first configured key
+    # (anthropic -> openai -> google -> stub); set explicitly to force one.
+    llm_provider: Literal["auto", "anthropic", "openai", "google", "stub"] = "auto"
     ai_decision_mode: DecisionMode = "empowered"
     ai_agent_model: str = "claude-haiku-4-5"
     ai_chair_model: str = "claude-sonnet-4-6"

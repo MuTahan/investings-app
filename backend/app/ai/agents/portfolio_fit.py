@@ -88,7 +88,7 @@ class PortfolioFitAgent(Agent):
         justification = None
         diversification = float(c.evidence["diversification_fit"])
 
-        if ctx.use_llm:
+        if ctx.agents_use_llm:
             try:
                 verdict = await llm.complete_json(
                     agent_reasoning_prompt(

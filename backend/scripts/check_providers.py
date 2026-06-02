@@ -15,6 +15,7 @@ import httpx
 
 from app.config import get_settings
 from app.providers.llm.anthropic_provider import AnthropicProvider
+from app.providers.llm.gemini_provider import GeminiProvider
 from app.providers.llm.openai_provider import OpenAIProvider
 from app.providers.market.alphavantage import AlphaVantageProvider
 from app.providers.market.finnhub import FinnhubProvider
@@ -98,6 +99,12 @@ async def main() -> None:
             await check_llm("openai", OpenAIProvider(client, s.openai_api_key), "gpt-4o-mini")
         else:
             print("  openai         (no key)")
+        if s.google_api_key:
+            await check_llm("google", GeminiProvider(client, s.google_api_key), s.ai_chair_model)
+        else:
+            print("  google         (no key)")
+        print(f"\n  active llm_provider = {s.llm_provider} | "
+              f"agent={s.ai_agent_model} chair={s.ai_chair_model} mode={s.ai_decision_mode}")
     print()
 
 

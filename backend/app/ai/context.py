@@ -73,6 +73,7 @@ class ContextBuilder:
         macro: MacroSnapshot,
         decision_mode: str,
         use_llm: bool,
+        agents_use_llm: bool,
         agent_model: str,
     ) -> AgentContext:
         symbol = instrument.symbol
@@ -121,5 +122,6 @@ class ContextBuilder:
             data_quality=dq,
             decision_mode=decision_mode,
             use_llm=use_llm,
+            agents_use_llm=agents_use_llm,
             agent_model=agent_model,
         )

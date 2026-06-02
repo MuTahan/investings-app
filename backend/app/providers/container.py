@@ -15,6 +15,7 @@ from app.notifications.notifier import CompositeNotifier, build_notifier
 from app.providers.base import LLMProvider, MarketDataProvider
 from app.providers.cache import build_cache
 from app.providers.llm.anthropic_provider import AnthropicProvider
+from app.providers.llm.gemini_provider import GeminiProvider
 from app.providers.llm.openai_provider import OpenAIProvider
 from app.providers.llm.stub import StubLLMProvider
 from app.providers.market.alphavantage import AlphaVantageProvider
@@ -93,10 +94,26 @@ class ProviderContainer:
 
     def _build_llm(self) -> LLMProvider:
         s = self._settings
-        if s.anthropic_api_key:
+        choice = s.llm_provider
+
+        # Explicit selection wins; falls back to the stub if its key is missing.
+        if choice == "anthropic" and s.anthropic_api_key:
             return AnthropicProvider(self._client, s.anthropic_api_key)
-        if s.openai_api_key:
+        if choice == "openai" and s.openai_api_key:
             return OpenAIProvider(self._client, s.openai_api_key)
+        if choice == "google" and s.google_api_key:
+            return GeminiProvider(self._client, s.google_api_key)
+        if choice == "stub":
+            return StubLLMProvider()
+
+        # "auto": first configured key wins.
+        if choice == "auto":
+            if s.anthropic_api_key:
+                return AnthropicProvider(self._client, s.anthropic_api_key)
+            if s.openai_api_key:
+                return OpenAIProvider(self._client, s.openai_api_key)
+            if s.google_api_key:
+                return GeminiProvider(self._client, s.google_api_key)
         return StubLLMProvider()
 
     async def aclose(self) -> None:

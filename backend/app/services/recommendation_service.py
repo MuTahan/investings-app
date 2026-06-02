@@ -53,10 +53,18 @@ class RecommendationService:
 
     @property
     def _use_llm(self) -> bool:
+        # Chair uses the LLM in both chair_assisted and empowered modes.
         return (
             self._settings.ai_decision_mode != "deterministic"
             and self._providers.llm.name != "stub"
         )
+
+    @property
+    def _agents_use_llm(self) -> bool:
+        # Only "empowered" sends the 6 agents to the LLM (7 calls/recommendation);
+        # "chair_assisted" keeps agents deterministic and uses the LLM only for the
+        # Chair (1 call) — far gentler on rate-limited free tiers.
+        return self._use_llm and self._settings.ai_decision_mode == "empowered"
 
     async def get(self, user: User, symbol: str, refresh: bool = False) -> RecommendationOut:
         instrument = await self._instruments.get_by_symbol(symbol)
@@ -199,6 +207,7 @@ class RecommendationService:
             macro=macro,
             decision_mode=self._settings.ai_decision_mode,
             use_llm=self._use_llm,
+            agents_use_llm=self._agents_use_llm,
             agent_model=self._settings.ai_agent_model,
         )
         previous = await self._repo.latest(user.id, instrument.id)

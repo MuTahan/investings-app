@@ -89,7 +89,11 @@ class AgentContext:
     portfolio: PortfolioSnapshot
     data_quality: DataQuality
     decision_mode: str = "empowered"
+    # use_llm gates the Committee Chair; agents_use_llm gates the 6 agents.
+    # chair_assisted -> use_llm=True, agents_use_llm=False (1 LLM call/recommendation).
+    # empowered      -> both True (7 LLM calls). deterministic -> both False.
     use_llm: bool = False
+    agents_use_llm: bool = False
     agent_model: str = "claude-haiku-4-5"
 
 
@@ -146,7 +150,7 @@ class Agent(ABC):
 
     async def run(self, ctx: AgentContext, llm: LLMProvider) -> AgentResult:
         c = self.compute(ctx)
-        if not ctx.use_llm:
+        if not ctx.agents_use_llm:
             return AgentResult(
                 agent=self.name,
                 base_score=round(c.base_score, 2),
