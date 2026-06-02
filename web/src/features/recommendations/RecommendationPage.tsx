@@ -6,7 +6,7 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { EmptyState, ErrorPanel, Spinner } from "../../components/ui/StatePanel";
 import { useRecommendation } from "../../hooks/useRecommendations";
 import type { RecommendationDetail } from "../../models/recommendation";
-import { formatDate } from "../../lib/format";
+import { changeColor, formatCurrency, formatDate, formatPercent } from "../../lib/format";
 
 export function RecommendationPage() {
   const { symbol = "" } = useParams();
@@ -63,6 +63,48 @@ function RecommendationView({ reco }: { reco: RecommendationDetail }) {
         )}
       </Card>
 
+      {reco.valuation && (
+        <Card>
+          <CardHeader title="Targets & fair value" />
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 sm:grid-cols-3">
+            <Metric label="Fair value" value={formatCurrency(reco.valuation.fair_value)} />
+            <Metric
+              label={(reco.valuation.valuation_gap_pct ?? 0) >= 0 ? "Undervalued" : "Overvalued"}
+              value={formatPercent(reco.valuation.valuation_gap_pct)}
+              className={changeColor(reco.valuation.valuation_gap_pct)}
+            />
+            <Metric
+              label="Margin of safety"
+              value={formatPercent(reco.valuation.margin_of_safety_pct)}
+            />
+            <Metric
+              label="Entry zone"
+              value={`${formatCurrency(reco.valuation.entry_low)} – ${formatCurrency(
+                reco.valuation.entry_high,
+              )}`}
+            />
+            <Metric
+              label="Target"
+              value={formatCurrency(reco.valuation.target_price)}
+              className="text-bull"
+            />
+            <Metric
+              label="Stop loss"
+              value={formatCurrency(reco.valuation.stop_loss)}
+              className="text-bear"
+            />
+          </div>
+          {reco.valuation.holding_period && (
+            <p className="mt-3 text-xs text-muted">
+              Suggested holding: {reco.valuation.holding_period}
+            </p>
+          )}
+          <p className="mt-1 text-xs text-muted">
+            Heuristic estimates, not financial advice.
+          </p>
+        </Card>
+      )}
+
       {reco.reasons.length > 0 && (
         <Card>
           <CardHeader title="Why" />
@@ -110,6 +152,23 @@ function RecommendationView({ reco }: { reco: RecommendationDetail }) {
           ))}
         </div>
       </Card>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  className,
+}: {
+  label: string;
+  value: string;
+  className?: string;
+}) {
+  return (
+    <div>
+      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
+      <p className={`font-semibold ${className ?? ""}`}>{value}</p>
     </div>
   );
 }

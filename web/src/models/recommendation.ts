@@ -22,6 +22,17 @@ export interface Personalization {
   fit_reason?: string | null;
 }
 
+export interface Valuation {
+  fair_value?: number | null;
+  valuation_gap_pct?: number | null;
+  margin_of_safety_pct?: number | null;
+  entry_low?: number | null;
+  entry_high?: number | null;
+  target_price?: number | null;
+  stop_loss?: number | null;
+  holding_period?: string | null;
+}
+
 export interface AgentBreakdown {
   agent: string;
   base_score?: number | null;
@@ -48,6 +59,7 @@ export interface RecommendationDetail {
   reasons: Reason[];
   risks: RiskNote[];
   personalization?: Personalization | null;
+  valuation?: Valuation | null;
   agent_breakdown: AgentBreakdown[];
   notif_priority: NotificationPriority;
   weights_version: string;

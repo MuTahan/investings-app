@@ -6,6 +6,7 @@ import asyncio
 from dataclasses import dataclass, field
 
 from app.ai import scoring
+from app.ai import valuation as valuation_mod
 from app.ai.agents.fundamental import FundamentalAgent
 from app.ai.agents.macro import MacroAgent
 from app.ai.agents.news_sentiment import NewsSentimentAgent
@@ -59,6 +60,7 @@ class CommitteeResult:
     personalization: dict
     agent_breakdown: list[AgentResult]
     notif_priority: NotificationPriority
+    valuation: dict = field(default_factory=dict)
     weights_version: str = scoring.WEIGHTS_VERSION
     model_versions: dict = field(default_factory=dict)
 
@@ -118,6 +120,7 @@ class InvestmentCommittee:
         horizon = scoring.time_horizon(results, ctx.profile.time_horizon)
         delta = composite - previous_score if previous_score is not None else 0.0
         priority = scoring.notification_priority(final, previous_rating, delta, conf, risk_level)
+        valuation = valuation_mod.estimate(ctx, final, horizon).as_dict()
 
         return CommitteeResult(
             rating=final,
@@ -133,6 +136,7 @@ class InvestmentCommittee:
             personalization=self._personalization(fit),
             agent_breakdown=results,
             notif_priority=priority,
+            valuation=valuation,
             model_versions=(
                 {"agents": ctx.agent_model, "chair": chair_model} if ctx.use_llm else {}
             ),

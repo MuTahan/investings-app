@@ -17,6 +17,9 @@ async def test_recommendation_returns_full_committee_output(client: AsyncClient,
     agents = {a["agent"] for a in body["agent_breakdown"]}
     assert agents == {"news", "technical", "fundamental", "macro", "risk", "portfolio_fit"}
     assert body["reasons"] and body["risks"]
+    assert body["valuation"] is not None
+    assert body["valuation"]["fair_value"] is not None
+    assert body["valuation"]["holding_period"]
 
 
 async def test_recommendation_is_idempotent_within_freshness(client: AsyncClient, auth_headers):

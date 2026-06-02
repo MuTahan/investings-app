@@ -295,3 +295,21 @@ Weights live in `ai/scoring.py` as a named, versioned config (`weights_version`)
 Model assignments per role live in config (`model_versions`). Every recommendation
 stores both, plus `decision_mode`, so changes are auditable and A/B-able without
 rewriting history.
+
+## Valuation & trade levels (`ai/valuation.py`)
+After the rating is decided, the committee attaches a deterministic `valuation` block to
+every recommendation (persisted in `recommendations.valuation`, exposed as
+`RecommendationOut.valuation`). It is a **heuristic decision aid, not a DCF or financial
+advice** — cheap, reproducible, swappable for a richer model later:
+
+- **fair_value** — anchored to the long-run trend (200-day MA) with a bounded ±15% tilt
+  from P/E mean-reversion (ETFs / no-earnings stay on the trend mean); clamped to
+  [−40%, +50%] of price to stay sane.
+- **valuation_gap_pct** — `(fair_value − price)/price` (+ve = undervalued / upside).
+- **margin_of_safety_pct** — only when price is below fair value.
+- **entry_low / entry_high / target_price / stop_loss** — sized from ATR (volatility);
+  a bearish rating (WATCH/AVOID) gets no momentum target.
+- **holding_period** — derived from the recommendation's time horizon.
+
+These fields power the watchlist "Analyze" view, the Recommendation Center cards, and the
+Stock-detail "fair price / best entry-exit" sections (Phases 8–10).

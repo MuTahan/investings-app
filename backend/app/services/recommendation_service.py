@@ -27,6 +27,7 @@ from app.schemas.recommendation import (
     PersonalizationOut,
     RecommendationOut,
     RecommendationSummary,
+    ValuationOut,
 )
 
 _committee = InvestmentCommittee()
@@ -193,6 +194,7 @@ class RecommendationService:
             decision_mode=result.decision_mode,
             weights_version=result.weights_version,
             model_versions=result.model_versions,
+            valuation=result.valuation,
         )
         outputs = []
         for r in result.agent_breakdown:
@@ -233,6 +235,7 @@ class RecommendationService:
             personalization=(
                 PersonalizationOut(**result.personalization) if result.personalization else None
             ),
+            valuation=ValuationOut(**result.valuation) if result.valuation else None,
             agent_breakdown=[
                 AgentBreakdownOut(
                     agent=r.agent.value,
@@ -270,6 +273,7 @@ class RecommendationService:
             personalization=(
                 PersonalizationOut(**rec.personalization) if rec.personalization else None
             ),
+            valuation=ValuationOut(**rec.valuation) if rec.valuation else None,
             agent_breakdown=[
                 AgentBreakdownOut(
                     agent=ao.agent,

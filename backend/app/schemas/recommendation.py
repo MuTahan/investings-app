@@ -42,6 +42,17 @@ class AgentBreakdownOut(BaseModel):
     warnings: list[str] = []
 
 
+class ValuationOut(BaseModel):
+    fair_value: float | None = None
+    valuation_gap_pct: float | None = None  # +ve = undervalued (upside to fair value)
+    margin_of_safety_pct: float | None = None
+    entry_low: float | None = None
+    entry_high: float | None = None
+    target_price: float | None = None
+    stop_loss: float | None = None
+    holding_period: str | None = None
+
+
 class RecommendationOut(BaseModel):
     symbol: str
     rating: Recommendation
@@ -55,6 +66,7 @@ class RecommendationOut(BaseModel):
     reasons: list[ReasonOut] = []
     risks: list[RiskOut] = []
     personalization: PersonalizationOut | None = None
+    valuation: ValuationOut | None = None
     agent_breakdown: list[AgentBreakdownOut] = []
     notif_priority: NotificationPriority = NotificationPriority.NORMAL
     weights_version: str = "v1"

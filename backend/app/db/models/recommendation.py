@@ -31,6 +31,7 @@ class Recommendation(Base):
     risks: Mapped[list] = mapped_column(JSON, default=list)
     suggested_action: Mapped[str | None] = mapped_column(Text, nullable=True)
     personalization: Mapped[dict] = mapped_column(JSON, default=dict)
+    valuation: Mapped[dict] = mapped_column(JSON, default=dict)
     chair_rationale: Mapped[str | None] = mapped_column(Text, nullable=True)
     notif_priority: Mapped[str] = mapped_column(String(10), default="normal", nullable=False)
     decision_mode: Mapped[str] = mapped_column(String(20), default="empowered", nullable=False)

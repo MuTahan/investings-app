@@ -97,6 +97,19 @@ def volume_ratio(candles: list[Candle], period: int = 20) -> float | None:
     return vols[-1] / avg
 
 
+def atr(candles: list[Candle], period: int = 14) -> float | None:
+    """Average True Range — a volatility measure used to size entry/target/stop levels."""
+    if len(candles) < period + 1:
+        return None
+    trs: list[float] = []
+    for i in range(1, len(candles)):
+        high, low, prev_close = candles[i].h, candles[i].l, candles[i - 1].c
+        trs.append(max(high - low, abs(high - prev_close), abs(low - prev_close)))
+    if len(trs) < period:
+        return None
+    return sum(trs[-period:]) / period
+
+
 @dataclass
 class TechnicalIndicators:
     rsi: float | None

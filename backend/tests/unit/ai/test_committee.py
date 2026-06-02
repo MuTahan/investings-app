@@ -69,6 +69,8 @@ async def test_committee_is_deterministic_and_complete():
     assert len(first.agent_breakdown) == 6
     assert first.decision_mode == "deterministic"
     assert first.reasons and first.risks
+    assert first.valuation.get("fair_value") is not None
+    assert first.valuation.get("target_price") is not None
 
 
 async def test_committee_bullish_inputs_lean_positive():
