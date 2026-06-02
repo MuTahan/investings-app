@@ -76,8 +76,8 @@ sudo netfilter-persistent save
 ## 6. Deploy the app
 
 ```bash
-git clone https://github.com/<your-username>/investing-app.git
-cd investing-app
+git clone https://github.com/MuTahan/investings-app.git
+cd investings-app
 cp .env.example .env
 nano .env
 ```
@@ -91,7 +91,14 @@ JWT_SECRET=<openssl rand -hex 32>
 POSTGRES_PASSWORD=<a strong password>
 REGISTRATION_ENABLED=true          # lock down after you register (step 8)
 FINNHUB_API_KEY=<your key>          # live market data
-# Optional: ANTHROPIC_API_KEY=... + AI_DECISION_MODE=empowered
+FMP_API_KEY=<your key>             # candles fallback
+NEWSAPI_API_KEY=<your key>         # headlines
+# AI judge via Google Gemini (AI Studio key):
+GOOGLE_API_KEY=<your key>
+LLM_PROVIDER=google
+AI_AGENT_MODEL=gemini-2.5-flash
+AI_CHAIR_MODEL=gemini-2.5-flash
+AI_DECISION_MODE=chair_assisted    # 1 LLM call/rec; use "empowered" on a paid tier
 ```
 
 Launch (first build on ARM takes a few minutes):
