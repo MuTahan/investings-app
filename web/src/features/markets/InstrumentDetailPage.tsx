@@ -56,7 +56,7 @@ export function InstrumentDetailPage() {
           <Link to="/" className="text-sm text-muted hover:underline">
             ‹ Markets
           </Link>
-          <h1 className="text-2xl font-semibold">{symbol.toUpperCase()}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{symbol.toUpperCase()}</h1>
           <p className="text-sm text-muted">{instrument.data?.name ?? ""}</p>
         </div>
         <div className="flex gap-2">
@@ -91,8 +91,8 @@ export function InstrumentDetailPage() {
         {quote.data && (
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <div className="text-3xl font-semibold">{formatCurrency(quote.data.price)}</div>
-              <div className={changeColor(quote.data.change_pct)}>
+              <div className="text-3xl font-bold tracking-tight tabular">{formatCurrency(quote.data.price)}</div>
+              <div className={cn("text-sm font-semibold tabular", changeColor(quote.data.change_pct))}>
                 {formatCurrency(quote.data.change)} ({formatPercent(quote.data.change_pct)})
               </div>
             </div>
@@ -117,7 +117,7 @@ export function InstrumentDetailPage() {
                   onClick={() => setPeriod(p.label)}
                   className={cn(
                     "rounded px-2 py-0.5 text-xs font-medium",
-                    period === p.label ? "bg-primary text-white" : "text-muted hover:text-slate-200",
+                    period === p.label ? "bg-primary text-primary-fg" : "text-muted hover:text-fg",
                   )}
                 >
                   {p.label}

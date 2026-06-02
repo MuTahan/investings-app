@@ -66,14 +66,26 @@ export function AuthScaffold({
   children: ReactNode;
 }) {
   return (
-    <div className="flex min-h-[100dvh] items-center justify-center px-4">
-      <div className="w-full max-w-sm">
-        <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <img src="/favicon.svg" alt="" className="h-12 w-12" />
-          <h1 className="text-xl font-semibold">{title}</h1>
-          <p className="text-sm text-muted">{subtitle}</p>
+    <div className="relative flex min-h-[100dvh] items-center justify-center overflow-hidden px-4">
+      {/* Soft branded glow behind the card. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/20 blur-3xl"
+      />
+      <div className="relative w-full max-w-sm">
+        <div className="mb-6 flex flex-col items-center gap-3 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M3 17l6-6 4 4 8-8" />
+              <path d="M17 7h4v4" />
+            </svg>
+          </span>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+            <p className="mt-1 text-sm text-muted">{subtitle}</p>
+          </div>
         </div>
-        <Card>{children}</Card>
+        <Card className="shadow-lift">{children}</Card>
       </div>
     </div>
   );

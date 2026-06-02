@@ -8,6 +8,7 @@ import {
 import { useEffect, useRef } from "react";
 
 import type { Candle } from "../../models/market";
+import { useThemeStore } from "../../store/themeStore";
 
 function toSeriesData(candles: Candle[]): CandlestickData[] {
   return candles
@@ -21,37 +22,53 @@ function toSeriesData(candles: Candle[]): CandlestickData[] {
     .sort((a, b) => (a.time as number) - (b.time as number));
 }
 
+function readVar(name: string): string {
+  if (typeof window === "undefined") return "#888";
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  // CSS vars are stored as "r g b" channels.
+  return v ? `rgb(${v.replace(/\s+/g, ", ")})` : "#888";
+}
+
 export function PriceChart({ candles, height = 320 }: { candles: Candle[]; height?: number }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
+  // Re-create the chart when the theme flips so colors stay correct.
+  const theme = useThemeStore((s) => s.theme);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
+    const muted = readVar("--muted");
+    const grid = readVar("--border");
+    const borderStrong = readVar("--border-strong");
+    const bull = readVar("--bull");
+    const bear = readVar("--bear");
+
     const chart = createChart(container, {
       height,
       layout: {
         background: { type: ColorType.Solid, color: "transparent" },
-        textColor: "#8b98b0",
+        textColor: muted,
         fontSize: 11,
+        fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
       },
       grid: {
-        vertLines: { color: "#1b2740" },
-        horzLines: { color: "#1b2740" },
+        vertLines: { color: grid },
+        horzLines: { color: grid },
       },
-      rightPriceScale: { borderColor: "#26324d" },
-      timeScale: { borderColor: "#26324d", timeVisible: false },
+      rightPriceScale: { borderColor: borderStrong },
+      timeScale: { borderColor: borderStrong, timeVisible: false },
       crosshair: { mode: 0 },
     });
     chartRef.current = chart;
 
     const series = chart.addCandlestickSeries({
-      upColor: "#16a34a",
-      downColor: "#dc2626",
+      upColor: bull,
+      downColor: bear,
       borderVisible: false,
-      wickUpColor: "#16a34a",
-      wickDownColor: "#dc2626",
+      wickUpColor: bull,
+      wickDownColor: bear,
     });
     series.setData(toSeriesData(candles));
     chart.timeScale().fitContent();
@@ -66,7 +83,7 @@ export function PriceChart({ candles, height = 320 }: { candles: Candle[]; heigh
       chart.remove();
       chartRef.current = null;
     };
-  }, [candles, height]);
+  }, [candles, height, theme]);
 
   return <div ref={containerRef} className="w-full" />;
 }

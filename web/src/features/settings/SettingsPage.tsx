@@ -57,7 +57,7 @@ export function SettingsPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Settings</h1>
         <p className="text-sm text-muted">{me.data?.email ?? me.data?.display_name ?? ""}</p>
       </header>
 
@@ -84,8 +84,8 @@ export function SettingsPage() {
                   onClick={() => toggleObjective(obj)}
                   className={`rounded-full px-3 py-1 text-sm capitalize transition-colors ${
                     objectives.includes(obj)
-                      ? "bg-primary text-white"
-                      : "bg-surface-2 text-muted hover:text-slate-200"
+                      ? "bg-primary text-primary-fg"
+                      : "bg-surface-2 text-muted hover:text-fg"
                   }`}
                 >
                   {obj}
@@ -187,8 +187,8 @@ function NotificationPreferencesCard() {
                 onClick={() => toggle(c.key)}
                 className={`rounded-full px-3 py-1 text-sm transition-colors ${
                   categories.includes(c.key)
-                    ? "bg-primary text-white"
-                    : "bg-surface-2 text-muted hover:text-slate-200"
+                    ? "bg-primary text-primary-fg"
+                    : "bg-surface-2 text-muted hover:text-fg"
                 }`}
               >
                 {c.label}
@@ -257,7 +257,7 @@ function Select({
     <select
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm capitalize text-slate-100 outline-none focus:border-primary"
+      className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm capitalize text-fg outline-none focus:border-primary"
     >
       {options.map((opt) => (
         <option key={opt} value={opt} className="capitalize">

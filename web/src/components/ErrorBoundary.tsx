@@ -29,7 +29,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <p className="text-sm text-muted">{this.state.message ?? "Unexpected error."}</p>
           <button
             onClick={() => window.location.reload()}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-primary-fg transition-colors hover:bg-primary-hover"
           >
             Reload
           </button>

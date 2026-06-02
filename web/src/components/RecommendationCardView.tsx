@@ -8,7 +8,7 @@ import { Card } from "./ui/Card";
 export function RecommendationCardView({ card }: { card: RecommendationCard }) {
   const v = card.valuation;
   return (
-    <Card className="h-full">
+    <Card className="h-full transition-all duration-150 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift">
       <div className="flex items-start justify-between gap-2">
         <Link to={`/recommendations/${card.symbol}`} className="min-w-0">
           <div className="flex items-center gap-2">
@@ -18,8 +18,8 @@ export function RecommendationCardView({ card }: { card: RecommendationCard }) {
           <p className="truncate text-xs text-muted">{card.name}</p>
         </Link>
         <div className="shrink-0 text-right text-sm">
-          <div>{card.confidence.toFixed(0)}%</div>
-          <div className="text-xs text-muted">{card.time_horizon}</div>
+          <div className="font-semibold tabular">{card.confidence.toFixed(0)}%</div>
+          <div className="text-xs capitalize text-muted">{card.time_horizon}</div>
         </div>
       </div>
       {card.reason && <p className="mt-2 line-clamp-2 text-sm text-muted">{card.reason}</p>}

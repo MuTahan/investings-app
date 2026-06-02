@@ -37,7 +37,7 @@ export function PortfolioPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold">Portfolio</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Portfolio</h1>
         <p className="text-sm text-muted">Your holdings and performance</p>
       </header>
 
@@ -70,7 +70,7 @@ export function PortfolioPage() {
                   .map(([sector, weight]) => (
                     <span
                       key={sector}
-                      className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-slate-300"
+                      className="rounded-full bg-surface-2 px-2.5 py-0.5 text-xs text-fg-soft"
                     >
                       {sector} {(weight * 100).toFixed(0)}%
                     </span>

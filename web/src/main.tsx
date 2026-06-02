@@ -6,6 +6,10 @@ import { RouterProvider } from "react-router-dom";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./index.css";
 import { router } from "./router";
+import { applyTheme, readStoredTheme } from "./store/themeStore";
+
+// Sync the React store with the theme already applied by the inline boot script.
+applyTheme(readStoredTheme());
 
 const queryClient = new QueryClient({
   defaultOptions: {

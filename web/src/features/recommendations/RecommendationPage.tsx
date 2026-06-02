@@ -18,7 +18,7 @@ export function RecommendationPage() {
         <Link to={`/markets/${symbol}`} className="text-sm text-muted hover:underline">
           ‹ {symbol.toUpperCase()}
         </Link>
-        <h1 className="text-2xl font-semibold">AI Recommendation</h1>
+        <h1 className="text-2xl font-bold tracking-tight">AI Recommendation</h1>
       </header>
 
       {reco.isLoading && <Spinner />}
@@ -125,7 +125,7 @@ function RecommendationView({ reco }: { reco: RecommendationDetail }) {
           <ul className="space-y-2">
             {reco.risks.map((r) => (
               <li key={r.label}>
-                <p className="text-sm font-medium text-amber-400">
+                <p className="text-sm font-medium text-warn">
                   {r.label} <span className="text-xs text-muted">({r.severity})</span>
                 </p>
                 <p className="text-sm text-muted">{r.detail}</p>

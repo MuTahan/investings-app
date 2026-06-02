@@ -39,7 +39,7 @@ export function RecommendationCenterPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold">Recommendations</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Recommendations</h1>
         <p className="text-sm text-muted">AI picks across your watchlist &amp; portfolio</p>
       </header>
 
@@ -124,7 +124,7 @@ function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm capitalize text-slate-100 outline-none focus:border-primary"
+        className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm capitalize text-fg outline-none focus:border-primary"
       >
         <option value="">Any</option>
         {options.map((o) => (

@@ -20,8 +20,8 @@ export function MarketsPage() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-semibold">Markets</h1>
-        <p className="text-sm text-muted">US stocks &amp; ETFs</p>
+        <h1 className="text-2xl font-bold tracking-tight">Markets</h1>
+        <p className="text-sm text-muted">US stocks &amp; ETFs · AI-rated</p>
       </header>
 
       <Input
@@ -29,6 +29,12 @@ export function MarketsPage() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         aria-label="Search instruments"
+        leftIcon={
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <circle cx="11" cy="11" r="7" />
+            <path d="M21 21l-4-4" />
+          </svg>
+        }
       />
 
       {showingSearch ? (
@@ -48,13 +54,13 @@ export function MarketsPage() {
         <>
           <TrendingSection />
           <section className="space-y-2">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Popular</h2>
+            <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Popular</h2>
             <div className="flex flex-wrap gap-2">
               {POPULAR.map((symbol) => (
                 <Link
                   key={symbol}
                   to={`/markets/${symbol}`}
-                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-medium hover:border-primary"
+                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm font-semibold shadow-card transition-colors hover:border-primary hover:text-primary"
                 >
                   {symbol}
                 </Link>
@@ -73,15 +79,17 @@ function TrendingSection() {
 
   return (
     <section className="space-y-3">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">Trending</h2>
-      <div className="flex flex-wrap gap-2">
+      <h2 className="text-xs font-semibold uppercase tracking-wider text-muted">Trending</h2>
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:overflow-visible">
         {TRENDING_CATEGORIES.map((c) => (
           <button
             key={c.key}
             onClick={() => setCategory(c.key)}
             className={cn(
-              "rounded-full px-3 py-1 text-xs font-medium transition-colors",
-              category === c.key ? "bg-primary text-white" : "bg-surface-2 text-muted hover:text-slate-200",
+              "shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors",
+              category === c.key
+                ? "bg-primary text-primary-fg shadow-sm"
+                : "bg-surface-2 text-muted ring-1 ring-inset ring-border hover:text-fg",
             )}
           >
             {c.label}
@@ -104,13 +112,13 @@ function TrendingSection() {
           <Link
             key={item.id}
             to={`/markets/${item.symbol}`}
-            className="flex items-center justify-between rounded-lg border border-border bg-surface px-4 py-3 hover:border-primary"
+            className="group flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-card transition-all duration-150 hover:-translate-y-0.5 hover:border-border-strong hover:shadow-lift"
           >
             <div className="min-w-0">
               <div className="font-semibold">{item.symbol}</div>
               <p className="truncate text-xs text-muted">{item.summary}</p>
             </div>
-            <div className={cn("text-right text-sm", changeColor(item.change_pct))}>
+            <div className={cn("shrink-0 text-right text-sm font-semibold tabular", changeColor(item.change_pct))}>
               {formatPercent(item.change_pct)}
             </div>
           </Link>

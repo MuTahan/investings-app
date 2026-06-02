@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 
 import { cn } from "../../lib/cn";
+import { ThemeToggle } from "../ui/ThemeToggle";
 
 interface NavItem {
   to: string;
@@ -18,38 +19,80 @@ const NAV: NavItem[] = [
   { to: "/settings", label: "Settings", icon: <IconGear /> },
 ];
 
+function Brand() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 text-primary">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M3 17l6-6 4 4 8-8" />
+          <path d="M17 7h4v4" />
+        </svg>
+      </span>
+      <span className="text-[15px] font-semibold tracking-tight">Investing&nbsp;AI</span>
+    </div>
+  );
+}
+
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div className="mx-auto flex min-h-[100dvh] w-full max-w-6xl">
-      {/* desktop side nav */}
-      <aside className="hidden w-56 shrink-0 flex-col gap-1 border-r border-border p-4 md:flex">
-        <div className="mb-6 flex items-center gap-2 px-2">
-          <img src="/favicon.svg" alt="" className="h-7 w-7" />
-          <span className="font-semibold">Investing AI</span>
+    <div className="mx-auto flex min-h-[100dvh] w-full max-w-7xl">
+      {/* Desktop side nav */}
+      <aside className="sticky top-0 hidden h-[100dvh] w-60 shrink-0 flex-col gap-1 border-r border-border px-3 py-5 md:flex">
+        <div className="mb-6 px-2">
+          <Brand />
         </div>
-        {NAV.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            end={item.to === "/"}
-            className={({ isActive }) =>
-              cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
-                isActive ? "bg-surface-2 text-white" : "text-muted hover:bg-surface hover:text-slate-200",
-              )
-            }
-          >
-            {item.icon}
-            {item.label}
-          </NavLink>
-        ))}
+        <nav className="flex flex-col gap-1">
+          {NAV.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/"}
+              className={({ isActive }) =>
+                cn(
+                  "group relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted hover:bg-surface-2 hover:text-fg",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <span
+                    className={cn(
+                      "absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary transition-opacity",
+                      isActive ? "opacity-100" : "opacity-0",
+                    )}
+                    aria-hidden
+                  />
+                  {item.icon}
+                  {item.label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </nav>
+        <div className="mt-auto flex items-center justify-between rounded-lg px-2 pt-4">
+          <span className="text-xs text-faint">Appearance</span>
+          <ThemeToggle />
+        </div>
       </aside>
 
-      {/* main content */}
-      <main className="flex-1 px-4 pb-24 pt-4 md:px-8 md:pb-8">{children}</main>
+      <div className="flex min-w-0 flex-1 flex-col">
+        {/* Mobile top bar */}
+        <header className="sticky top-0 z-20 flex items-center justify-between border-b border-border bg-bg/80 px-4 py-3 backdrop-blur-md md:hidden">
+          <Brand />
+          <ThemeToggle />
+        </header>
 
-      {/* mobile bottom tab bar */}
-      <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-border bg-surface/95 backdrop-blur md:hidden">
+        {/* Main content */}
+        <main className="flex-1 px-4 pb-24 pt-5 md:px-8 md:py-8">
+          <div className="animate-fade-in">{children}</div>
+        </main>
+      </div>
+
+      {/* Mobile bottom tab bar */}
+      <nav className="fixed inset-x-0 bottom-0 z-20 flex border-t border-border bg-surface/90 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden">
         {NAV.map((item) => (
           <NavLink
             key={item.to}
@@ -57,13 +100,19 @@ export function AppShell({ children }: { children: ReactNode }) {
             end={item.to === "/"}
             className={({ isActive }) =>
               cn(
-                "flex flex-1 flex-col items-center gap-1 py-2 text-[11px]",
+                "flex flex-1 flex-col items-center gap-1 py-2 text-[10px] font-medium transition-colors",
                 isActive ? "text-primary" : "text-muted",
               )
             }
           >
-            {item.icon}
-            {item.label}
+            {({ isActive }) => (
+              <>
+                <span className={cn("transition-transform", isActive && "-translate-y-0.5")}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
@@ -73,7 +122,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
 function IconMarkets() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M3 17l6-6 4 4 8-8" />
       <path d="M17 7h4v4" />
     </svg>
@@ -82,7 +131,7 @@ function IconMarkets() {
 
 function IconStar() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M12 3l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 18l-5.9 3 1.2-6.5L2.5 9.9 9 9z" />
     </svg>
   );
@@ -90,7 +139,7 @@ function IconStar() {
 
 function IconBriefcase() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <rect x="3" y="7" width="18" height="13" rx="2" />
       <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
     </svg>
@@ -99,7 +148,7 @@ function IconBriefcase() {
 
 function IconSparkle() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M12 3l1.9 4.6L18.5 9.5l-4.6 1.9L12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" />
       <path d="M19 14l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z" />
     </svg>
@@ -108,7 +157,7 @@ function IconSparkle() {
 
 function IconBell() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" />
       <path d="M13.7 21a2 2 0 0 1-3.4 0" />
     </svg>
@@ -117,7 +166,7 @@ function IconBell() {
 
 function IconGear() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
       <circle cx="12" cy="12" r="3" />
       <path d="M19 12a7 7 0 0 0-.1-1l2-1.5-2-3.5-2.4 1a7 7 0 0 0-1.7-1L16.5 2h-4l-.3 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7 7 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.3-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5a7 7 0 0 0 .1-1z" />
     </svg>

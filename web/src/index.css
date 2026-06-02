@@ -2,19 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== Design tokens =====================================================
+   Colors are stored as space-separated RGB channels so Tailwind can apply
+   opacity via `rgb(var(--token) / <alpha-value>)`. Light is the default
+   (:root); `.dark` on <html> swaps to the dark palette.                     */
 @layer base {
+  :root {
+    /* Light theme — clean, premium fintech */
+    --bg: 246 248 251;
+    --surface: 255 255 255;
+    --surface-2: 241 245 249;
+    --surface-3: 226 232 240;
+    --border: 226 232 240;
+    --border-strong: 203 213 225;
+    --fg: 15 23 42;
+    --fg-soft: 51 65 85;
+    --muted: 100 116 139;
+    --faint: 148 163 184;
+    --primary: 5 150 105; /* emerald-600 */
+    --primary-hover: 4 120 87; /* emerald-700 */
+    --primary-fg: 255 255 255;
+    --bull: 22 163 74;
+    --bear: 220 38 38;
+    --warn: 217 119 6;
+    --info: 37 99 235;
+  }
+
+  .dark {
+    /* Dark theme — deep navy, emerald accent */
+    --bg: 8 11 18;
+    --surface: 15 20 31;
+    --surface-2: 22 29 44;
+    --surface-3: 30 39 58;
+    --border: 30 39 58;
+    --border-strong: 45 57 82;
+    --fg: 237 241 248;
+    --fg-soft: 197 206 222;
+    --muted: 139 152 176;
+    --faint: 100 116 139;
+    --primary: 16 185 129; /* emerald-500 */
+    --primary-hover: 52 211 153; /* emerald-400 */
+    --primary-fg: 3 24 17;
+    --bull: 34 197 94;
+    --bear: 248 113 113;
+    --warn: 251 191 36;
+    --info: 96 165 250;
+  }
+
   html {
-    color-scheme: dark;
+    -webkit-text-size-adjust: 100%;
   }
+
   body {
-    @apply bg-bg text-slate-100 antialiased;
+    @apply bg-bg text-fg antialiased;
     margin: 0;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: theme("fontFamily.sans");
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
-  /* respect iOS safe areas when installed as a PWA */
+
+  /* Tabular figures everywhere numbers matter (prices, %, volumes). */
+  .tabular,
+  table,
+  dd {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Respect iOS safe areas when installed as a PWA. */
   #root {
     min-height: 100dvh;
     padding-top: env(safe-area-inset-top);
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* Consistent, accessible focus ring on keyboard nav. */
+  :focus-visible {
+    outline: none;
+    box-shadow:
+      0 0 0 2px rgb(var(--bg)),
+      0 0 0 4px rgb(var(--primary) / 0.7);
+    border-radius: 0.5rem;
+  }
+
+  /* Themed, slim scrollbars. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--border-strong)) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--border-strong));
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  /* Skeleton shimmer block for loading states. */
+  .skeleton {
+    @apply relative overflow-hidden rounded-md bg-surface-2;
+  }
+  .skeleton::after {
+    @apply absolute inset-0 animate-shimmer;
+    content: "";
+    background: linear-gradient(90deg, transparent, rgb(var(--fg) / 0.06), transparent);
+    transform: translateX(-100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
   }
 }
