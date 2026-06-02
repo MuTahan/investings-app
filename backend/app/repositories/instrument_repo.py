@@ -23,6 +23,15 @@ class InstrumentRepository(BaseRepository):
         stmt = select(Instrument).where(Instrument.id.in_(ids))
         return list((await self.session.execute(stmt)).scalars().all())
 
+    async def list_active(self, limit: int = 60) -> list[Instrument]:
+        stmt = (
+            select(Instrument)
+            .where(Instrument.is_active.is_(True))
+            .order_by(Instrument.symbol)
+            .limit(limit)
+        )
+        return list((await self.session.execute(stmt)).scalars().all())
+
     async def search(self, query: str, limit: int = 20) -> list[Instrument]:
         like = f"%{query.upper()}%"
         stmt = (

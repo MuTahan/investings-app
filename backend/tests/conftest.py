@@ -94,11 +94,14 @@ class FakeNotifier:
 
 class FakeProviderContainer:
     def __init__(self) -> None:
+        from app.providers.cache import InMemoryCache
+
         self.market = FakeMarketRouter()
         self.market_vendors = ["fake"]
         self.llm = FakeLLM()
         self.apple_verifier = FakeAppleVerifier()
         self.notifier = FakeNotifier()
+        self.cache = InMemoryCache()
 
     async def aclose(self) -> None:
         return None

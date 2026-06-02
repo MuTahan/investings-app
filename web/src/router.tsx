@@ -8,6 +8,7 @@ import { InstrumentDetailPage } from "./features/markets/InstrumentDetailPage";
 import { MarketsPage } from "./features/markets/MarketsPage";
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
 import { PortfolioPage } from "./features/portfolio/PortfolioPage";
+import { RecommendationCenterPage } from "./features/recommendations/RecommendationCenterPage";
 import { RecommendationPage } from "./features/recommendations/RecommendationPage";
 import { SettingsPage } from "./features/settings/SettingsPage";
 import { WatchlistPage } from "./features/watchlist/WatchlistPage";
@@ -54,6 +55,7 @@ export const router = createBrowserRouter([
       { path: "/markets/:symbol", element: <InstrumentDetailPage /> },
       { path: "/watchlist", element: <WatchlistPage /> },
       { path: "/portfolio", element: <PortfolioPage /> },
+      { path: "/recommendations", element: <RecommendationCenterPage /> },
       { path: "/notifications", element: <NotificationsPage /> },
       { path: "/recommendations/:symbol", element: <RecommendationPage /> },
       { path: "/settings", element: <SettingsPage /> },

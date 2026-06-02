@@ -11,7 +11,9 @@ from app.schemas.market import (
     QuoteOut,
     SearchResponse,
 )
+from app.schemas.trending import TrendingResponse
 from app.services.market_service import MarketService
+from app.services.trending_service import TrendingService
 
 router = APIRouter(prefix="/market", tags=["market"])
 
@@ -20,6 +22,18 @@ _VALID_RESOLUTIONS = {"1", "5", "15", "60", "D", "W"}
 
 def _service(session: SessionDep, providers: ProvidersDep) -> MarketService:
     return MarketService(session, providers.market)
+
+
+@router.get("/trending", response_model=TrendingResponse)
+async def trending(
+    session: SessionDep,
+    providers: ProvidersDep,
+    _: CurrentUserDep,
+    category: str = Query(default="trending"),
+    limit: int = Query(default=12, ge=1, le=50),
+) -> TrendingResponse:
+    items = await TrendingService(session, providers).get(category, limit)
+    return TrendingResponse(category=category, items=items)
 
 
 @router.get("/search", response_model=SearchResponse)
@@ -55,7 +69,7 @@ async def get_candles(
     providers: ProvidersDep,
     _: CurrentUserDep,
     resolution: str = Query(default="D"),
-    days: int = Query(default=180, ge=1, le=2000),
+    days: int = Query(default=180, ge=1, le=4000),
 ) -> CandleSeriesOut:
     resolution = resolution if resolution in _VALID_RESOLUTIONS else "D"
     to = datetime.now(UTC)

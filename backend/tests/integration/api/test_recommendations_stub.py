@@ -54,3 +54,16 @@ async def test_recommendation_scope_watchlist(client: AsyncClient, auth_headers)
     assert resp.status_code == 200
     symbols = [i["symbol"] for i in resp.json()["items"]]
     assert "AAPL" in symbols
+
+
+async def test_recommendation_center_sections(client: AsyncClient, auth_headers):
+    await client.post("/api/v1/watchlist/items", json={"symbol": "AAPL"}, headers=auth_headers)
+    resp = await client.get("/api/v1/recommendations/center", headers=auth_headers)
+    assert resp.status_code == 200
+    body = resp.json()
+    for section in ("top_picks", "short_term", "long_term", "trending", "personalized"):
+        assert section in body
+    # every card has a valuation + reasoning; trending includes the watchlist symbol
+    assert "AAPL" in [c["symbol"] for c in body["trending"]]
+    card = body["trending"][0]
+    assert card["valuation"] is not None and "rating" in card

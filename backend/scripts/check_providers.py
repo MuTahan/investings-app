@@ -62,7 +62,8 @@ async def main() -> None:
         print("\n== Market data providers ==")
         if s.finnhub_api_key:
             await check_market(
-                "finnhub", FinnhubProvider(client, s.finnhub_api_key),
+                "finnhub",
+                FinnhubProvider(client, s.finnhub_api_key),
                 ["quote", "candles", "fundamentals", "news"],
             )
         else:
@@ -75,7 +76,8 @@ async def main() -> None:
             print("  fmp            (no key)")
         if s.alphavantage_api_key:
             await check_market(
-                "alphavantage", AlphaVantageProvider(client, s.alphavantage_api_key),
+                "alphavantage",
+                AlphaVantageProvider(client, s.alphavantage_api_key),
                 ["quote", "candles", "fundamentals"],
             )
         else:

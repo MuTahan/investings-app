@@ -14,6 +14,8 @@ export const endpoints = {
     quote: (symbol: string) => `/market/quote/${encodeURIComponent(symbol)}`,
     candles: (symbol: string, resolution = "D", days = 180) =>
       `/market/candles/${encodeURIComponent(symbol)}?resolution=${resolution}&days=${days}`,
+    trending: (category = "trending", limit = 12) =>
+      `/market/trending?category=${category}&limit=${limit}`,
   },
   watchlist: {
     root: "/watchlist",
@@ -33,6 +35,10 @@ export const endpoints = {
   recommendations: {
     forSymbol: (symbol: string, refresh = false) =>
       `/recommendations/${encodeURIComponent(symbol)}?refresh=${refresh}`,
+    center: (params: Record<string, string>) => {
+      const qs = new URLSearchParams(params).toString();
+      return `/recommendations/center${qs ? `?${qs}` : ""}`;
+    },
   },
   notifications: {
     list: (limit = 50) => `/notifications?limit=${limit}`,

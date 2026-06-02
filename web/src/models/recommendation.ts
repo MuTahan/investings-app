@@ -46,6 +46,29 @@ export interface AgentBreakdown {
   warnings: string[];
 }
 
+export interface RecommendationCard {
+  symbol: string;
+  name: string;
+  sector?: string | null;
+  rating: Rating;
+  confidence: number;
+  composite_score: number;
+  time_horizon: TimeHorizon;
+  risk_level?: RiskLevel | null;
+  valuation?: Valuation | null;
+  reason?: string | null;
+  fit_score?: number | null;
+  notif_priority: NotificationPriority;
+}
+
+export interface RecommendationCenter {
+  top_picks: RecommendationCard[];
+  short_term: RecommendationCard[];
+  long_term: RecommendationCard[];
+  trending: RecommendationCard[];
+  personalized: RecommendationCard[];
+}
+
 export interface RecommendationDetail {
   symbol: string;
   rating: Rating;

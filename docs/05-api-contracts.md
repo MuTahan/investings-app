@@ -82,11 +82,21 @@ Response `200` (live, cached):
   "volume":54213000,"as_of":"2026-06-01T15:30:00Z" }
 ```
 
-### `GET /market/candles/{symbol}?resolution=D&from=...&to=...`
-`resolution` ∈ `1|5|15|60|D|W`. Response `200`:
+### `GET /market/candles/{symbol}?resolution=D&days=180`
+`resolution` ∈ `1|5|15|60|D|W` (free tier serves daily). `days` 1–4000. Response `200`:
 ```json
 { "symbol":"AAPL","resolution":"D",
   "candles":[ { "t":"2026-05-30T00:00:00Z","o":199,"h":203,"l":198,"c":201,"v":51000000 } ] }
+```
+
+### `GET /market/trending?category=trending&limit=12`  ⭐ (Phase 8)
+`category` ∈ `trending | most_bought | most_sold | high_momentum | high_opportunity`.
+Computed from quote momentum over a curated universe, cached ~5 min. Response `200`:
+```json
+{ "category":"most_bought",
+  "items":[ { "id":"uuid","symbol":"NVDA","name":"NVIDIA Corporation","type":"stock",
+              "price":131.2,"change_pct":3.4,"sentiment":"bullish",
+              "trend_score":67.0,"summary":"Up sharply 3.4% today" } ] }
 ```
 
 ---
@@ -196,6 +206,19 @@ Batch latest recommendations across the user's watchlist or holdings.
 
 ### `GET /recommendations/{symbol}/history?limit=20`
 Time series of past recommendations for trend display.
+
+### `GET /recommendations/center`  ⭐ (Phase 8)
+Bucketed recommendation cards across the user's watchlist + holdings. Optional filters:
+`horizon` (short|medium|long), `risk` (low|medium|high), `sector`, `type` (a rating),
+`min_confidence` (0–100). Each card carries the `valuation` block. Response `200`:
+```json
+{ "top_picks": [ { "symbol":"AAPL","name":"Apple Inc.","sector":"Technology",
+                   "rating":"BUY","confidence":72.5,"composite_score":68.4,
+                   "time_horizon":"long","risk_level":"medium","reason":"Strong momentum",
+                   "fit_score":64.0,"notif_priority":"normal",
+                   "valuation": { "fair_value":224.4,"target_price":236.9,"stop_loss":214.2 } } ],
+  "short_term": [], "long_term": [], "trending": [], "personalized": [] }
+```
 
 ---
 

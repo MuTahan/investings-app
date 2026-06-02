@@ -6,6 +6,7 @@ from fastapi import APIRouter, Query
 
 from app.deps import CurrentUserDep, ProvidersDep, SessionDep, SettingsDep
 from app.schemas.recommendation import (
+    RecommendationCenterResponse,
     RecommendationListResponse,
     RecommendationOut,
 )
@@ -28,6 +29,28 @@ async def list_recommendations(
 ) -> RecommendationListResponse:
     items = await _service(session, providers, settings).list_scope(user, scope)
     return RecommendationListResponse(items=items)
+
+
+@router.get("/center", response_model=RecommendationCenterResponse)
+async def recommendation_center(
+    user: CurrentUserDep,
+    session: SessionDep,
+    providers: ProvidersDep,
+    settings: SettingsDep,
+    horizon: str | None = Query(default=None),
+    risk: str | None = Query(default=None),
+    sector: str | None = Query(default=None),
+    type: str | None = Query(default=None),
+    min_confidence: float = Query(default=0.0, ge=0, le=100),
+) -> RecommendationCenterResponse:
+    return await _service(session, providers, settings).center(
+        user,
+        horizon=horizon,
+        risk=risk,
+        sector=sector,
+        rec_type=type,
+        min_confidence=min_confidence,
+    )
 
 
 @router.get("/{symbol}", response_model=RecommendationOut)

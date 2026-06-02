@@ -35,3 +35,11 @@ export function useCandles(symbol: string | undefined, resolution = "D", days = 
     enabled: Boolean(symbol),
   });
 }
+
+export function useTrending(category: string) {
+  return useQuery({
+    queryKey: ["trending", category],
+    queryFn: () => marketRepository.trending(category),
+    staleTime: 60_000,
+  });
+}

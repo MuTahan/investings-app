@@ -18,13 +18,17 @@ from app.db.models.recommendation import AgentOutput
 from app.db.models.recommendation import Recommendation as RecommendationModel
 from app.db.models.user import User
 from app.domain.enums import Recommendation as Rating
+from app.domain.enums import TimeHorizon
 from app.providers.container import ProviderContainer
 from app.repositories.instrument_repo import InstrumentRepository
 from app.repositories.portfolio_repo import PortfolioRepository
 from app.repositories.recommendation_repo import RecommendationRepository
+from app.repositories.watchlist_repo import WatchlistRepository
 from app.schemas.recommendation import (
     AgentBreakdownOut,
     PersonalizationOut,
+    RecommendationCard,
+    RecommendationCenterResponse,
     RecommendationOut,
     RecommendationSummary,
     ValuationOut,
@@ -32,6 +36,7 @@ from app.schemas.recommendation import (
 
 _committee = InvestmentCommittee()
 _FRESHNESS_SECONDS = 3600
+_BUY_RATINGS = {Rating.BUY, Rating.STRONG_BUY}
 
 
 class RecommendationService:
@@ -110,6 +115,71 @@ class RecommendationService:
             )
             for r in records
         ]
+
+    async def center(
+        self,
+        user: User,
+        *,
+        horizon: str | None = None,
+        risk: str | None = None,
+        sector: str | None = None,
+        rec_type: str | None = None,
+        min_confidence: float = 0.0,
+    ) -> RecommendationCenterResponse:
+        cards: list[RecommendationCard] = []
+        for symbol in await self._user_symbols(user):
+            instrument = await self._instruments.get_by_symbol(symbol)
+            if instrument is None:
+                continue
+            cards.append(self._to_card(await self.get(user, symbol), instrument))
+
+        cards = [
+            c
+            for c in cards
+            if (horizon is None or c.time_horizon.value == horizon)
+            and (risk is None or (c.risk_level is not None and c.risk_level.value == risk))
+            and (sector is None or (c.sector is not None and c.sector.lower() == sector.lower()))
+            and (rec_type is None or c.rating.value == rec_type)
+            and c.confidence >= min_confidence
+        ]
+        buys = [c for c in cards if c.rating in _BUY_RATINGS]
+
+        def by_conf(items: list[RecommendationCard]) -> list[RecommendationCard]:
+            return sorted(items, key=lambda c: c.confidence, reverse=True)[:8]
+
+        return RecommendationCenterResponse(
+            top_picks=by_conf(buys),
+            short_term=by_conf(
+                [c for c in buys if c.time_horizon in (TimeHorizon.SHORT, TimeHorizon.MEDIUM)]
+            ),
+            long_term=by_conf([c for c in buys if c.time_horizon == TimeHorizon.LONG]),
+            trending=sorted(cards, key=lambda c: c.composite_score, reverse=True)[:8],
+            personalized=sorted(cards, key=lambda c: c.fit_score or 0.0, reverse=True)[:8],
+        )
+
+    async def _user_symbols(self, user: User) -> list[str]:
+        portfolio = await self._portfolios.get_or_create_default(user.id)
+        watchlist = await WatchlistRepository(self._session).get_or_create_default(user.id)
+        symbols = {item.instrument.symbol for item in watchlist.items}
+        symbols.update(h.instrument.symbol for h in portfolio.holdings)
+        return sorted(symbols)
+
+    def _to_card(self, out: RecommendationOut, instrument) -> RecommendationCard:
+        risk_level = next((a.risk_level for a in out.agent_breakdown if a.agent == "risk"), None)
+        return RecommendationCard(
+            symbol=out.symbol,
+            name=instrument.name,
+            sector=instrument.sector,
+            rating=out.rating,
+            confidence=out.confidence,
+            composite_score=out.composite_score,
+            time_horizon=out.time_horizon,
+            risk_level=risk_level,
+            valuation=out.valuation,
+            reason=out.reasons[0].detail if out.reasons else None,
+            fit_score=out.personalization.fit_score if out.personalization else None,
+            notif_priority=out.notif_priority,
+        )
 
     # ---------------- internals ----------------
     async def _evaluate(self, user: User, instrument) -> CommitteeResult:

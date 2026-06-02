@@ -85,3 +85,26 @@ class RecommendationSummary(BaseModel):
 
 class RecommendationListResponse(BaseModel):
     items: list[RecommendationSummary]
+
+
+class RecommendationCard(BaseModel):
+    symbol: str
+    name: str
+    sector: str | None = None
+    rating: Recommendation
+    confidence: float
+    composite_score: float
+    time_horizon: TimeHorizon
+    risk_level: RiskLevel | None = None
+    valuation: ValuationOut | None = None
+    reason: str | None = None
+    fit_score: float | None = None
+    notif_priority: NotificationPriority
+
+
+class RecommendationCenterResponse(BaseModel):
+    top_picks: list[RecommendationCard] = []
+    short_term: list[RecommendationCard] = []
+    long_term: list[RecommendationCard] = []
+    trending: list[RecommendationCard] = []
+    personalized: list[RecommendationCard] = []

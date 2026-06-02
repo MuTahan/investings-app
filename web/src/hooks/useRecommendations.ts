@@ -7,6 +7,13 @@ export function useRecommendation(symbol: string | undefined, refresh = false) {
     queryKey: ["recommendation", symbol, refresh],
     queryFn: () => recommendationRepository.forSymbol(symbol as string, refresh),
     enabled: Boolean(symbol),
-    retry: false, // Phase 4 stub returns 501; don't hammer it
+    retry: false,
+  });
+}
+
+export function useRecommendationCenter(filters: Record<string, string> = {}) {
+  return useQuery({
+    queryKey: ["recommendation-center", filters],
+    queryFn: () => recommendationRepository.center(filters),
   });
 }

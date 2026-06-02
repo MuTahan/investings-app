@@ -42,3 +42,17 @@ async def test_candles(client: AsyncClient, auth_headers):
 async def test_market_requires_auth(client: AsyncClient):
     resp = await client.get("/api/v1/market/quote/AAPL")
     assert resp.status_code == 401
+
+
+async def test_trending(client: AsyncClient, auth_headers):
+    resp = await client.get(
+        "/api/v1/market/trending",
+        params={"category": "most_bought", "limit": 5},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 200
+    body = resp.json()
+    assert body["category"] == "most_bought"
+    assert len(body["items"]) >= 1
+    item = body["items"][0]
+    assert item["symbol"] and item["sentiment"] == "bullish" and "trend_score" in item
