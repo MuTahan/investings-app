@@ -58,6 +58,9 @@ export function NotificationsPage() {
               ) : (
                 <span className="text-muted">—</span>
               )}
+              <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">
+                {item.category === "news" ? "News" : "Rating"}
+              </span>
             </div>
             <div className="text-right text-sm text-muted">
               <div>{formatDate(item.sent_at)}</div>

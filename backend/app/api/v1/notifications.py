@@ -5,8 +5,14 @@ from pydantic import BaseModel, Field
 
 from app.deps import CurrentUserDep, ProvidersDep, SessionDep, SettingsDep
 from app.repositories.device_repo import DeviceRepository
+from app.repositories.notification_repo import NotificationPreferenceRepository
 from app.schemas.common import Message
-from app.schemas.notification import NotificationFeedResponse, RunResult
+from app.schemas.notification import (
+    NotificationFeedResponse,
+    NotificationPreferenceOut,
+    NotificationPreferenceUpdate,
+    RunResult,
+)
 from app.services.notification_service import NotificationService
 
 router = APIRouter(prefix="/notifications", tags=["notifications"])
@@ -15,6 +21,39 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 class RegisterDeviceRequest(BaseModel):
     device_token: str = Field(min_length=1, max_length=400)
     platform: str = "ios"
+
+
+def _pref_out(pref) -> NotificationPreferenceOut:
+    return NotificationPreferenceOut(
+        categories=pref.categories or [],
+        min_priority=pref.min_priority,
+        max_risk=pref.max_risk,
+        sectors=pref.sectors or [],
+        quiet_hours_start=pref.quiet_hours_start,
+        quiet_hours_end=pref.quiet_hours_end,
+    )
+
+
+@router.get("/preferences", response_model=NotificationPreferenceOut)
+async def get_preferences(user: CurrentUserDep, session: SessionDep) -> NotificationPreferenceOut:
+    pref = await NotificationPreferenceRepository(session).get_or_create(user.id)
+    return _pref_out(pref)
+
+
+@router.put("/preferences", response_model=NotificationPreferenceOut)
+async def update_preferences(
+    req: NotificationPreferenceUpdate, user: CurrentUserDep, session: SessionDep
+) -> NotificationPreferenceOut:
+    pref = await NotificationPreferenceRepository(session).upsert(
+        user.id,
+        categories=req.categories,
+        min_priority=req.min_priority.value,
+        max_risk=req.max_risk.value,
+        sectors=req.sectors,
+        quiet_hours_start=req.quiet_hours_start,
+        quiet_hours_end=req.quiet_hours_end,
+    )
+    return _pref_out(pref)
 
 
 @router.get("", response_model=NotificationFeedResponse)

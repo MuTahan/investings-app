@@ -8,7 +8,7 @@ import { Button } from "../../components/ui/Button";
 import { Card, CardHeader } from "../../components/ui/Card";
 import { EmptyState, ErrorPanel, Spinner } from "../../components/ui/StatePanel";
 import { useCandles, useInstrument, useQuote } from "../../hooks/useMarket";
-import { useNews } from "../../hooks/useNews";
+import { useNewsImpact } from "../../hooks/useNews";
 import { useRecommendation } from "../../hooks/useRecommendations";
 import { useAddWatchlistItem } from "../../hooks/useWatchlist";
 import { cn } from "../../lib/cn";
@@ -45,7 +45,7 @@ export function InstrumentDetailPage() {
   const instrument = useInstrument(symbol);
   const quote = useQuote(symbol);
   const candles = useCandles(symbol, "D", days);
-  const news = useNews(symbol);
+  const news = useNewsImpact(symbol);
   const reco = useRecommendation(symbol);
   const addToWatchlist = useAddWatchlistItem();
 
@@ -177,17 +177,30 @@ export function InstrumentDetailPage() {
       </Card>
 
       <Card>
-        <CardHeader title="News timeline" />
+        <CardHeader title="News &amp; impact" />
         {news.isLoading && <Spinner />}
+        {news.data && (
+          <p className="mb-3 text-sm text-muted">{news.data.summary}</p>
+        )}
         {news.data && news.data.items.length === 0 && <EmptyState title="No recent news" />}
         <ul className="space-y-3 border-l border-border pl-4">
           {news.data?.items.map((item) => (
             <li key={item.url} className="relative">
-              <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-primary" />
+              <span
+                className={cn(
+                  "absolute -left-[21px] top-1.5 h-2 w-2 rounded-full",
+                  item.impact_label === "bullish"
+                    ? "bg-bull"
+                    : item.impact_label === "bearish"
+                      ? "bg-bear"
+                      : "bg-muted",
+                )}
+              />
               <a href={item.url} target="_blank" rel="noreferrer" className="block hover:text-primary">
                 <p className="text-sm font-medium">{item.headline}</p>
                 <p className="text-xs text-muted">
-                  {item.source ?? "News"} · {formatDate(item.published_at)}
+                  {item.source ?? "News"} · {formatDate(item.published_at)} ·{" "}
+                  <span className={impactColor(item.impact_label)}>{item.impact_label}</span>
                 </p>
               </a>
             </li>
@@ -205,4 +218,10 @@ function Stat({ label, value }: { label: string; value: string }) {
       <dd>{value}</dd>
     </div>
   );
+}
+
+function impactColor(label: string): string {
+  if (label === "bullish") return "text-bull";
+  if (label === "bearish") return "text-bear";
+  return "text-muted";
 }

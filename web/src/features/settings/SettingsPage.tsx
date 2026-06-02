@@ -6,7 +6,12 @@ import { Card, CardHeader } from "../../components/ui/Card";
 import { Input } from "../../components/ui/Input";
 import { ErrorPanel, Spinner } from "../../components/ui/StatePanel";
 import { useMe, useUpdateRiskProfile } from "../../hooks/useAuth";
+import {
+  useNotificationPreferences,
+  useUpdateNotificationPreferences,
+} from "../../hooks/useNotifications";
 import type { RiskTolerance, TimeHorizon } from "../../models/enums";
+import type { NotificationPreference } from "../../models/notification";
 import { useAuthStore } from "../../store/authStore";
 
 const TOLERANCES: RiskTolerance[] = ["conservative", "moderate", "aggressive"];
@@ -111,6 +116,8 @@ export function SettingsPage() {
         </form>
       </Card>
 
+      <NotificationPreferencesCard />
+
       <Card>
         <CardHeader title="Account" />
         <Button variant="danger" onClick={logout}>
@@ -118,6 +125,113 @@ export function SettingsPage() {
         </Button>
       </Card>
     </div>
+  );
+}
+
+const CATEGORIES = [
+  { key: "rating_change", label: "Rating changes" },
+  { key: "news", label: "News impact" },
+];
+
+function NotificationPreferencesCard() {
+  const prefs = useNotificationPreferences();
+  const update = useUpdateNotificationPreferences();
+
+  const [categories, setCategories] = useState<string[]>([]);
+  const [minPriority, setMinPriority] = useState("high");
+  const [maxRisk, setMaxRisk] = useState("high");
+  const [quietStart, setQuietStart] = useState("");
+  const [quietEnd, setQuietEnd] = useState("");
+
+  useEffect(() => {
+    const p = prefs.data;
+    if (p) {
+      setCategories(p.categories ?? []);
+      setMinPriority(p.min_priority);
+      setMaxRisk(p.max_risk);
+      setQuietStart(p.quiet_hours_start != null ? String(p.quiet_hours_start) : "");
+      setQuietEnd(p.quiet_hours_end != null ? String(p.quiet_hours_end) : "");
+    }
+  }, [prefs.data]);
+
+  const toggle = (key: string) =>
+    setCategories((prev) => (prev.includes(key) ? prev.filter((c) => c !== key) : [...prev, key]));
+
+  const onSave = (e: FormEvent) => {
+    e.preventDefault();
+    const payload: NotificationPreference = {
+      categories,
+      min_priority: minPriority as NotificationPreference["min_priority"],
+      max_risk: maxRisk as NotificationPreference["max_risk"],
+      sectors: [],
+      quiet_hours_start: quietStart === "" ? null : Number(quietStart),
+      quiet_hours_end: quietEnd === "" ? null : Number(quietEnd),
+    };
+    update.mutate(payload);
+  };
+
+  return (
+    <Card>
+      <CardHeader title="Notifications" />
+      <p className="mb-4 text-sm text-muted">
+        Choose what the hourly AI run alerts you about. Empty categories = all.
+      </p>
+      {prefs.isLoading && <Spinner />}
+      <form onSubmit={onSave} className="space-y-4">
+        <Field label="Categories">
+          <div className="flex flex-wrap gap-2">
+            {CATEGORIES.map((c) => (
+              <button
+                type="button"
+                key={c.key}
+                onClick={() => toggle(c.key)}
+                className={`rounded-full px-3 py-1 text-sm transition-colors ${
+                  categories.includes(c.key)
+                    ? "bg-primary text-white"
+                    : "bg-surface-2 text-muted hover:text-slate-200"
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        </Field>
+        <div className="grid grid-cols-2 gap-3">
+          <Field label="Min priority">
+            <Select
+              value={minPriority}
+              onChange={setMinPriority}
+              options={["normal", "high", "critical"]}
+            />
+          </Field>
+          <Field label="Max risk">
+            <Select value={maxRisk} onChange={setMaxRisk} options={["low", "medium", "high"]} />
+          </Field>
+          <Input
+            label="Quiet from (UTC hour)"
+            type="number"
+            min="0"
+            max="23"
+            value={quietStart}
+            onChange={(e) => setQuietStart(e.target.value)}
+          />
+          <Input
+            label="Quiet until (UTC hour)"
+            type="number"
+            min="0"
+            max="23"
+            value={quietEnd}
+            onChange={(e) => setQuietEnd(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-3">
+          <Button type="submit" loading={update.isPending}>
+            Save
+          </Button>
+          {update.isSuccess && <span className="text-sm text-bull">Saved ✓</span>}
+        </div>
+      </form>
+    </Card>
   );
 }
 

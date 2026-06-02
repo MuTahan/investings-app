@@ -8,3 +8,12 @@ export function useNews(symbol: string | null, category = "company") {
     queryFn: () => newsRepository.list(symbol, category),
   });
 }
+
+export function useNewsImpact(symbol: string | undefined) {
+  return useQuery({
+    queryKey: ["news-impact", symbol],
+    queryFn: () => newsRepository.impact(symbol as string),
+    enabled: Boolean(symbol),
+    retry: false,
+  });
+}

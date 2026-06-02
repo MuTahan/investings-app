@@ -231,19 +231,41 @@ Bucketed recommendation cards across the user's watchlist + holdings. Optional f
 ```
 Omit `symbol` for macro/market news.
 
+### `GET /news/impact?symbol=AAPL`  ⭐ (Phase 9)
+News-workflow report: per-headline impact + aggregate, folded with the committee verdict.
+```json
+{ "symbol":"AAPL","article_count":12,"net_sentiment":7.5,"sentiment_label":"neutral",
+  "predicted_short_term":"neutral","predicted_long_term":"bullish",
+  "recommended_action":"BUY","confidence":81.4,
+  "summary":"12 recent headlines, net neutral sentiment (+8); committee rates AAPL BUY at 81%.",
+  "items":[ { "headline":"...","url":"...","source":"Reuters","published_at":"...",
+              "impact_score":30,"impact_label":"bullish" } ] }
+```
+
 ---
 
 ## Notifications / Devices
 
-### `POST /notifications/devices`
-`{ "device_token":"apns_token", "platform":"ios" }` → `201`.
-
-### `DELETE /notifications/devices/{device_token}` → `204`.
-
-### `GET /notifications` (history)
+### `GET /notifications` (in-app feed)
 ```json
-{ "items": [ { "symbol":"AAPL","rating":"BUY","sent_at":"...","status":"sent" } ] }
+{ "items": [ { "symbol":"AAPL","rating":"BUY","category":"rating_change",
+               "sent_at":"...","status":"sent" } ] }
 ```
+
+### `POST /notifications/run`
+Runs the recompute + notify pass for the current user now (testing). → `RunResult`.
+
+### `GET` / `PUT /notifications/preferences`  ⭐ (Phase 9)
+Per-user delivery rules used by the hourly job. `PUT` body = same shape:
+```json
+{ "categories":["rating_change","news"], "min_priority":"high", "max_risk":"high",
+  "sectors":[], "quiet_hours_start":null, "quiet_hours_end":null }
+```
+`categories`/`sectors` empty = all. `min_priority` ∈ normal|high|critical; `max_risk` ∈
+low|medium|high; quiet hours are UTC 0–23.
+
+### `POST /notifications/devices` · `DELETE /notifications/devices/{device_token}`
+Device registration (legacy/optional). `201` / `204`.
 
 ---
 

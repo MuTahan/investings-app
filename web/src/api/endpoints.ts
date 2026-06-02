@@ -32,6 +32,7 @@ export const endpoints = {
     if (symbol) params.set("symbol", symbol);
     return `/news?${params.toString()}`;
   },
+  newsImpact: (symbol: string) => `/news/impact?symbol=${encodeURIComponent(symbol)}`,
   recommendations: {
     forSymbol: (symbol: string, refresh = false) =>
       `/recommendations/${encodeURIComponent(symbol)}?refresh=${refresh}`,
@@ -44,5 +45,6 @@ export const endpoints = {
     list: (limit = 50) => `/notifications?limit=${limit}`,
     run: "/notifications/run",
     devices: "/notifications/devices",
+    preferences: "/notifications/preferences",
   },
 } as const;

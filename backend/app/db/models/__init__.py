@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from app.db.models.device import Device, NotificationLog
+from app.db.models.device import Device, NotificationLog, NotificationPreference
 from app.db.models.instrument import Instrument
 from app.db.models.news import NewsItem
 from app.db.models.portfolio import Holding, Portfolio
@@ -13,6 +13,7 @@ from app.db.models.watchlist import Watchlist, WatchlistItem
 __all__ = [
     "Device",
     "NotificationLog",
+    "NotificationPreference",
     "Instrument",
     "NewsItem",
     "Holding",
