@@ -17,7 +17,7 @@ from app.services.trending_service import TrendingService
 
 router = APIRouter(prefix="/market", tags=["market"])
 
-_VALID_RESOLUTIONS = {"1", "5", "15", "60", "D", "W"}
+_VALID_RESOLUTIONS = {"1", "5", "15", "30", "60", "D", "W"}
 
 
 def _service(session: SessionDep, providers: ProvidersDep) -> MarketService:

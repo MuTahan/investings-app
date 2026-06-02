@@ -29,7 +29,15 @@ function readVar(name: string): string {
   return v ? `rgb(${v.replace(/\s+/g, ", ")})` : "#888";
 }
 
-export function PriceChart({ candles, height = 320 }: { candles: Candle[]; height?: number }) {
+export function PriceChart({
+  candles,
+  height = 320,
+  intraday = false,
+}: {
+  candles: Candle[];
+  height?: number;
+  intraday?: boolean;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   // Re-create the chart when the theme flips so colors stay correct.
@@ -58,7 +66,7 @@ export function PriceChart({ candles, height = 320 }: { candles: Candle[]; heigh
         horzLines: { color: grid },
       },
       rightPriceScale: { borderColor: borderStrong },
-      timeScale: { borderColor: borderStrong, timeVisible: false },
+      timeScale: { borderColor: borderStrong, timeVisible: intraday, secondsVisible: false },
       crosshair: { mode: 0 },
     });
     chartRef.current = chart;
@@ -83,7 +91,7 @@ export function PriceChart({ candles, height = 320 }: { candles: Candle[]; heigh
       chart.remove();
       chartRef.current = null;
     };
-  }, [candles, height, theme]);
+  }, [candles, height, theme, intraday]);
 
   return <div ref={containerRef} className="w-full" />;
 }

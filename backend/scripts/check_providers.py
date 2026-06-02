@@ -21,6 +21,7 @@ from app.providers.market.alphavantage import AlphaVantageProvider
 from app.providers.market.finnhub import FinnhubProvider
 from app.providers.market.fmp import FMPProvider
 from app.providers.market.newsapi import NewsAPIProvider
+from app.providers.market.twelvedata import TwelveDataProvider
 
 SYMBOL = "AAPL"
 
@@ -83,6 +84,14 @@ async def main() -> None:
             )
         else:
             print("  alphavantage   (no key)")
+        if s.twelvedata_api_key:
+            await check_market(
+                "twelvedata",
+                TwelveDataProvider(client, s.twelvedata_api_key),
+                ["quote", "candles"],
+            )
+        else:
+            print("  twelvedata     (no key)")
         if s.newsapi_api_key:
             await check_market("newsapi", NewsAPIProvider(client, s.newsapi_api_key), ["news"])
         else:

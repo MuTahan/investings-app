@@ -22,6 +22,7 @@ from app.providers.market.alphavantage import AlphaVantageProvider
 from app.providers.market.finnhub import FinnhubProvider
 from app.providers.market.fmp import FMPProvider
 from app.providers.market.newsapi import NewsAPIProvider
+from app.providers.market.twelvedata import TwelveDataProvider
 from app.providers.rate_limit import RateLimiterRegistry
 from app.providers.router import MarketDataRouter
 
@@ -73,6 +74,8 @@ class ProviderContainer:
             providers.append(FMPProvider(self._client, s.fmp_api_key))
         if s.alphavantage_api_key:
             providers.append(AlphaVantageProvider(self._client, s.alphavantage_api_key))
+        if s.twelvedata_api_key:
+            providers.append(TwelveDataProvider(self._client, s.twelvedata_api_key))
         if s.newsapi_api_key:
             providers.append(NewsAPIProvider(self._client, s.newsapi_api_key))
         return providers
@@ -86,11 +89,13 @@ class ProviderContainer:
             return [by_name[n] for n in names if n in by_name]
 
         return {
-            "quote": chain("finnhub", "fmp", "alphavantage"),
-            "candles": chain("fmp", "alphavantage", "finnhub"),
+            "quote": chain("finnhub", "fmp", "twelvedata", "alphavantage"),
+            # FMP serves daily (free); it raises on intraday so the router falls
+            # through to Twelve Data (the only free intraday source).
+            "candles": chain("fmp", "twelvedata", "alphavantage", "finnhub"),
             "fundamentals": chain("finnhub", "fmp", "alphavantage"),
             "news": chain("finnhub", "newsapi"),
-            "search": chain("finnhub", "fmp"),
+            "search": chain("finnhub", "fmp", "twelvedata"),
         }
 
     def _build_llm(self) -> LLMProvider:

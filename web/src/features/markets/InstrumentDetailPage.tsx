@@ -26,25 +26,34 @@ function ytdDays(): number {
   return Math.max(1, Math.ceil((now.getTime() - start.getTime()) / 86_400_000));
 }
 
-// Free tier is daily EOD only; intraday (1D/1W) needs premium data.
-const PERIODS: { label: string; days: number }[] = [
-  { label: "1M", days: 30 },
-  { label: "3M", days: 90 },
-  { label: "6M", days: 180 },
-  { label: "YTD", days: ytdDays() },
-  { label: "1Y", days: 365 },
-  { label: "5Y", days: 1825 },
-  { label: "Max", days: 3650 },
+// Intraday resolutions (1D/3D/1W) come from Twelve Data; longer ranges use daily EOD.
+type Period = { label: string; days: number; res: string };
+const PERIODS: Period[] = [
+  { label: "1D", days: 1, res: "5" },
+  { label: "3D", days: 3, res: "15" },
+  { label: "1W", days: 7, res: "30" },
+  { label: "1M", days: 30, res: "D" },
+  { label: "3M", days: 90, res: "D" },
+  { label: "6M", days: 180, res: "D" },
+  { label: "YTD", days: ytdDays(), res: "D" },
+  { label: "1Y", days: 365, res: "D" },
+  { label: "5Y", days: 1825, res: "D" },
+  { label: "Max", days: 3650, res: "D" },
 ];
+
+const RES_LABEL: Record<string, string> = {
+  "5": "5-min", "15": "15-min", "30": "30-min", "60": "hourly",
+};
 
 export function InstrumentDetailPage() {
   const { symbol = "" } = useParams();
-  const [period, setPeriod] = useState("6M");
-  const days = PERIODS.find((p) => p.label === period)?.days ?? 180;
+  const [period, setPeriod] = useState("1M");
+  const sel = PERIODS.find((p) => p.label === period) ?? PERIODS[3];
+  const isIntraday = sel.res !== "D" && sel.res !== "W";
 
   const instrument = useInstrument(symbol);
   const quote = useQuote(symbol);
-  const candles = useCandles(symbol, "D", days);
+  const candles = useCandles(symbol, sel.res, sel.days);
   const news = useNewsImpact(symbol);
   const reco = useRecommendation(symbol);
   const addToWatchlist = useAddWatchlistItem();
@@ -91,7 +100,15 @@ export function InstrumentDetailPage() {
         {quote.data && (
           <div className="flex flex-wrap items-end justify-between gap-4">
             <div>
-              <div className="text-3xl font-bold tracking-tight tabular">{formatCurrency(quote.data.price)}</div>
+              <div className="flex items-center gap-2">
+                <div className="text-3xl font-bold tracking-tight tabular">
+                  {formatCurrency(quote.data.price)}
+                </div>
+                <span className="inline-flex items-center gap-1 rounded-full bg-bull/10 px-2 py-0.5 text-[11px] font-semibold text-bull">
+                  <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-bull" aria-hidden />
+                  Live
+                </span>
+              </div>
               <div className={cn("text-sm font-semibold tabular", changeColor(quote.data.change_pct))}>
                 {formatCurrency(quote.data.change)} ({formatPercent(quote.data.change_pct)})
               </div>
@@ -131,11 +148,15 @@ export function InstrumentDetailPage() {
           <ErrorPanel message={isApiError(candles.error) ? candles.error.message : "Chart unavailable."} />
         )}
         {candles.data && candles.data.candles.length > 0 ? (
-          <PriceChart candles={candles.data.candles} />
+          <PriceChart candles={candles.data.candles} intraday={isIntraday} />
         ) : (
           !candles.isLoading && <EmptyState title="No chart data" />
         )}
-        <p className="mt-1 text-xs text-muted">Daily prices · intraday needs premium data.</p>
+        <p className="mt-1 text-xs text-muted">
+          {isIntraday
+            ? `${RES_LABEL[sel.res] ?? "Intraday"} bars · live market hours`
+            : "Daily closing prices"}
+        </p>
       </Card>
 
       <Card>

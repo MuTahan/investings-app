@@ -76,6 +76,10 @@ class FMPProvider(BaseMarketProvider):
     async def get_candles(
         self, symbol: str, resolution: str, frm: datetime, to: datetime
     ) -> CandleSeries:
+        # Free plan only has daily EOD; let the router fall through to an intraday
+        # provider (Twelve Data) for minute/hour resolutions.
+        if resolution not in ("D", "1day", "W", "1week", "M", "1month"):
+            raise ProviderError(f"fmp: intraday resolution '{resolution}' not available")
         rows = await self._get(
             "/historical-price-eod/full",
             {"symbol": symbol.upper(), "from": frm.date().isoformat(), "to": to.date().isoformat()},

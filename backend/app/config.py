@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     finnhub_api_key: str | None = None
     alphavantage_api_key: str | None = None
     fmp_api_key: str | None = None
+    twelvedata_api_key: str | None = None  # free tier: intraday candles (1D/3D/1W charts)
     newsapi_api_key: str | None = None
 
     # --- AI providers ---
