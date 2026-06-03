@@ -1,9 +1,20 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
 import { RatingBadge } from "../components/ui/Badge";
 import { InstrumentRow } from "../features/markets/InstrumentRow";
+
+function withProviders(ui: ReactNode) {
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  return (
+    <QueryClientProvider client={client}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>
+  );
+}
 
 describe("RatingBadge", () => {
   it("renders the rating label", () => {
@@ -15,7 +26,7 @@ describe("RatingBadge", () => {
 describe("InstrumentRow", () => {
   it("renders symbol, name, and links to the detail page", () => {
     render(
-      <MemoryRouter>
+      withProviders(
         <InstrumentRow
           instrument={{
             id: "1",
@@ -24,8 +35,8 @@ describe("InstrumentRow", () => {
             type: "stock",
             currency: "USD",
           }}
-        />
-      </MemoryRouter>,
+        />,
+      ),
     );
     expect(screen.getByText("AAPL")).toBeInTheDocument();
     expect(screen.getByText("Apple Inc.")).toBeInTheDocument();

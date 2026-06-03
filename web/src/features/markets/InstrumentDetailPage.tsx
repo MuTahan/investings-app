@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 
 import { isApiError } from "../../api/errors";
 import { PriceChart } from "../../components/charts/PriceChart";
+import { StockChat } from "../chat/StockChat";
 import { RatingBadge } from "../../components/ui/Badge";
 import { Button } from "../../components/ui/Button";
 import { Card, CardHeader } from "../../components/ui/Card";
@@ -227,6 +228,20 @@ export function InstrumentDetailPage() {
             </li>
           ))}
         </ul>
+      </Card>
+
+      <Card>
+        <CardHeader title={`Ask about ${symbol.toUpperCase()}`} />
+        <StockChat
+          symbol={symbol}
+          heightClass="h-[360px]"
+          suggestions={[
+            "Is the valuation attractive right now?",
+            "Summarize the recent news",
+            "What are the key risks?",
+            "Explain the AI rating",
+          ]}
+        />
       </Card>
     </div>
   );

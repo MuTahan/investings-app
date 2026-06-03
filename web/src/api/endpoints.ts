@@ -7,6 +7,7 @@ export const endpoints = {
   },
   me: "/me",
   riskProfile: "/me/risk-profile",
+  chat: "/chat",
   market: {
     search: (q: string, limit = 20) =>
       `/market/search?q=${encodeURIComponent(q)}&limit=${limit}`,

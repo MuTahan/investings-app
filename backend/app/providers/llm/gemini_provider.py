@@ -16,8 +16,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-import random
-import re
+import time
 from typing import Any
 
 import httpx
@@ -26,9 +25,13 @@ from app.core.exceptions import ProviderError
 
 _BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 _MAX_CONCURRENCY = 2  # cap simultaneous calls so the committee fan-out doesn't burst
-_MAX_ATTEMPTS = 4
-_RETRY_STATUSES = {429, 500, 503}
-_MAX_BACKOFF_SECONDS = 15.0
+_MAX_ATTEMPTS = 3  # for transient 500/503 only
+_RETRYABLE_SERVER = {500, 503}
+_MAX_BACKOFF_SECONDS = 4.0
+# After a 429 we stop calling Gemini for this long so the committee falls back to
+# deterministic *instantly* instead of stalling on retries for every stock. When the
+# quota frees up the next call after the window simply succeeds.
+_COOLDOWN_SECONDS = 90.0
 
 
 class GeminiProvider:
@@ -38,6 +41,7 @@ class GeminiProvider:
         self._client = client
         self._key = api_key
         self._sem: asyncio.Semaphore | None = None
+        self._cooldown_until = 0.0  # monotonic deadline; >now means circuit open
 
     def _semaphore(self) -> asyncio.Semaphore:
         # Lazily created inside the running loop; safe because there is no await
@@ -65,19 +69,24 @@ class GeminiProvider:
         }
         url = f"{_BASE}/{model}:generateContent"
 
-        last_error: str = "unknown error"
+        # Circuit breaker: if a recent call was rate-limited, skip the network entirely
+        # so the caller falls back to its deterministic anchor without delay.
+        if time.monotonic() < self._cooldown_until:
+            raise ProviderError("gemini: rate-limited (cooling down)")
+
         for attempt in range(_MAX_ATTEMPTS):
             try:
                 async with self._semaphore():
-                    resp = await self._client.post(
-                        url, headers=headers, json=body, timeout=40.0
-                    )
+                    resp = await self._client.post(url, headers=headers, json=body, timeout=30.0)
                 resp.raise_for_status()
             except httpx.HTTPStatusError as exc:
                 status = exc.response.status_code
-                last_error = f"HTTP {status}"
-                if status in _RETRY_STATUSES and attempt < _MAX_ATTEMPTS - 1:
-                    await asyncio.sleep(_backoff(exc.response, attempt))
+                if status == 429:
+                    # Quota/rate limit — trip the breaker and fail fast (don't retry).
+                    self._cooldown_until = time.monotonic() + _COOLDOWN_SECONDS
+                    raise ProviderError("gemini: rate limited (429)") from exc
+                if status in _RETRYABLE_SERVER and attempt < _MAX_ATTEMPTS - 1:
+                    await asyncio.sleep(min(1.5 * (attempt + 1), _MAX_BACKOFF_SECONDS))
                     continue
                 raise ProviderError(f"gemini error: {exc}") from exc
             except httpx.HTTPError as exc:
@@ -90,7 +99,7 @@ class GeminiProvider:
             parts = candidates[0].get("content", {}).get("parts", [])
             return "".join(p.get("text", "") for p in parts if "text" in p)
 
-        raise ProviderError(f"gemini error: retries exhausted ({last_error})")
+        raise ProviderError("gemini error: transient failures exhausted")
 
     async def complete_text(self, prompt: str, *, model: str, max_tokens: int = 600) -> str:
         return await self._generate(prompt, model, max_tokens, json_mode=False)
@@ -100,23 +109,6 @@ class GeminiProvider:
     ) -> dict[str, Any]:
         text = await self._generate(prompt, model, max_tokens, json_mode=True)
         return _extract_json(text)
-
-
-def _backoff(response: httpx.Response, attempt: int) -> float:
-    """Prefer Gemini's advertised RetryInfo / Retry-After; else exponential."""
-    retry_after = response.headers.get("retry-after")
-    if retry_after and retry_after.isdigit():
-        return min(float(retry_after), _MAX_BACKOFF_SECONDS)
-    try:
-        for detail in response.json().get("error", {}).get("details", []):
-            delay = detail.get("retryDelay")
-            if isinstance(delay, str):
-                m = re.match(r"([\d.]+)s", delay)
-                if m:
-                    return min(float(m.group(1)), _MAX_BACKOFF_SECONDS)
-    except (ValueError, AttributeError):
-        pass
-    return min(2.0**attempt + random.uniform(0, 0.5), _MAX_BACKOFF_SECONDS)
 
 
 def _extract_json(text: str) -> dict[str, Any]:

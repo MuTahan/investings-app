@@ -18,6 +18,7 @@ from app.providers.llm.anthropic_provider import AnthropicProvider
 from app.providers.llm.gemini_provider import GeminiProvider
 from app.providers.llm.openai_provider import OpenAIProvider
 from app.providers.llm.stub import StubLLMProvider
+from app.providers.llm.xai_chat import XaiChat
 from app.providers.market.alphavantage import AlphaVantageProvider
 from app.providers.market.finnhub import FinnhubProvider
 from app.providers.market.fmp import FMPProvider
@@ -53,6 +54,11 @@ class ProviderContainer:
         )
         self.market_vendors = [p.name for p in market]
         self.llm: LLMProvider = self._build_llm()
+        self.chat: XaiChat | None = (
+            XaiChat(self._client, settings.xai_api_key, settings.xai_base_url, settings.xai_model)
+            if settings.xai_api_key
+            else None
+        )
         self.apple_verifier = AppleTokenVerifier(settings, client=self._client)
         self.notifier: CompositeNotifier = build_notifier(settings, self._client)
         logger.info(

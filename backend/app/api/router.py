@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from app.api.v1 import (
     auth,
+    chat,
     market,
     news,
     notifications,
@@ -24,3 +25,4 @@ api_router.include_router(portfolio.router)
 api_router.include_router(news.router)
 api_router.include_router(recommendations.router)
 api_router.include_router(notifications.router)
+api_router.include_router(chat.router)

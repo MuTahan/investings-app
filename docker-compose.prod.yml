@@ -52,6 +52,7 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       LLM_PROVIDER: ${LLM_PROVIDER:-auto}
+      XAI_API_KEY: ${XAI_API_KEY:-}
       AI_DECISION_MODE: ${AI_DECISION_MODE:-deterministic}
       AI_AGENT_MODEL: ${AI_AGENT_MODEL:-claude-haiku-4-5}
       AI_CHAIR_MODEL: ${AI_CHAIR_MODEL:-claude-sonnet-4-6}

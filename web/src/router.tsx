@@ -4,6 +4,7 @@ import { createBrowserRouter, Navigate, Outlet } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
 import { LoginPage } from "./features/auth/LoginPage";
 import { RegisterPage } from "./features/auth/RegisterPage";
+import { ChatPage } from "./features/chat/ChatPage";
 import { InstrumentDetailPage } from "./features/markets/InstrumentDetailPage";
 import { MarketsPage } from "./features/markets/MarketsPage";
 import { NotificationsPage } from "./features/notifications/NotificationsPage";
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
       { path: "/watchlist", element: <WatchlistPage /> },
       { path: "/portfolio", element: <PortfolioPage /> },
       { path: "/recommendations", element: <RecommendationCenterPage /> },
+      { path: "/chat", element: <ChatPage /> },
       { path: "/notifications", element: <NotificationsPage /> },
       { path: "/recommendations/:symbol", element: <RecommendationPage /> },
       { path: "/settings", element: <SettingsPage /> },

@@ -61,6 +61,11 @@ class Settings(BaseSettings):
     ai_agent_model: str = "claude-haiku-4-5"
     ai_chair_model: str = "claude-sonnet-4-6"
 
+    # --- conversational chat (Grok / xAI; OpenAI-compatible) ---
+    xai_api_key: str | None = None
+    xai_base_url: str = "https://api.x.ai/v1"
+    xai_model: str = "grok-2-latest"
+
     # --- notifications ---
     ntfy_server: str = "https://ntfy.sh"
     ntfy_topic: str | None = None  # set to enable ntfy push

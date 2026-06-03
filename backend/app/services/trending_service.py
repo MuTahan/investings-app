@@ -113,9 +113,17 @@ class TrendingService:
         cached = await self._providers.cache.get(_CACHE_KEY)
         if cached:
             return cached
-        instruments = await self._instruments.list_active()
+        instruments = await self._instruments.list_active(limit=150)
+        # Bound concurrency so scanning ~100 symbols doesn't burst past free-tier
+        # rate limits (the whole snapshot is cached afterwards).
+        sem = asyncio.Semaphore(8)
+
+        async def _q(symbol: str):
+            async with sem:
+                return await self._quote(symbol)
+
         quotes = await asyncio.gather(
-            *(self._quote(i.symbol) for i in instruments), return_exceptions=True
+            *(_q(i.symbol) for i in instruments), return_exceptions=True
         )
         rows: list[dict] = []
         for inst, quote in zip(instruments, quotes, strict=False):
